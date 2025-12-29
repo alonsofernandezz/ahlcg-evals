@@ -1,59 +1,113 @@
 {
   "campaign": "return_to_night_of_the_zealot",
-  "chaos_bag_additions": [],
+  "chaos_bag_additions": [
+    "elderthing"
+  ],
   "deck": {
     "slots": {
       "01006": 1,
       "01007": 1,
-      "01016": 1,
+      "01016": 2,
       "01017": 2,
-      "01019": 2,
+      "01018": 1,
+      "01019": 1,
       "01020": 2,
       "01021": 2,
       "01022": 2,
       "01023": 2,
       "01024": 1,
-      "01030": 2,
-      "01038": 2,
+      "01025": 1,
+      "01030": 1,
+      "01033": 1,
+      "01037": 1,
       "01039": 2,
-      "01086": 2,
+      "01040": 1,
       "01087": 2,
       "01088": 2,
       "01089": 2,
       "01090": 2
     },
-    "story_assets": [],
+    "story_assets": [
+      "01117"
+    ],
     "weaknesses": [
-      "01102"
+      "01102",
+      "01096"
     ]
   },
   "difficulty": "standard",
   "investigator": "roland",
-  "killed_investigators": [],
+  "killed_investigators": [
+    "roland"
+  ],
   "log": {
-    "arkham_succumbed": null,
-    "cultists_got_away": [],
+    "arkham_succumbed": true,
+    "cultists_got_away": [
+      "Alma Hill",
+      "Jeremiah Pierce",
+      "Nar\u00f4gath",
+      "Peter Warren",
+      "Ruth Turner",
+      "Victoria Devereux"
+    ],
     "cultists_interrogated": [],
     "ghoul_priest_alive": true,
-    "lita_earned": false,
-    "lita_in_deck": false,
-    "lita_sacrificed": null,
+    "lita_earned": true,
+    "lita_in_deck": true,
+    "lita_sacrificed": false,
     "lita_was_forced_to_find_others": false,
     "notes": [],
     "past_midnight": false,
-    "ritual_broken": null,
-    "umordhoth_repelled": null,
+    "ritual_broken": false,
+    "umordhoth_repelled": false,
     "your_house_standing": true
   },
-  "next": "return_to_the_gathering",
-  "phase": "scenario",
-  "scenarios": [],
+  "next": null,
+  "phase": "complete",
+  "scenarios": [
+    {
+      "resolution": "no_resolution",
+      "run": "campaigns/show-fable-roland/runs/c-show-fable-roland-1",
+      "scenario": "return_to_the_gathering",
+      "score": 4,
+      "status": "complete",
+      "trauma_delta": {
+        "mental": 0,
+        "physical": 1
+      },
+      "xp_earned": 5
+    },
+    {
+      "resolution": "R1",
+      "run": "campaigns/show-fable-roland/runs/c-show-fable-roland-2",
+      "scenario": "return_to_the_midnight_masks",
+      "score": 0,
+      "status": "complete",
+      "trauma_delta": {
+        "mental": 2,
+        "physical": 0
+      },
+      "xp_earned": 1
+    },
+    {
+      "resolution": "no_resolution",
+      "run": "campaigns/show-fable-roland/runs/c-show-fable-roland-3",
+      "scenario": "return_to_the_devourer_below",
+      "score": 0,
+      "status": "complete",
+      "trauma_delta": {
+        "mental": 1,
+        "physical": 0
+      },
+      "xp_earned": 0
+    }
+  ],
   "seed": 9201,
   "trauma": {
-    "mental": 0,
-    "physical": 0
+    "mental": 3,
+    "physical": 1
   },
-  "xp_earned_total": 0,
-  "xp_spent_total": 0,
+  "xp_earned_total": 6,
+  "xp_spent_total": 6,
   "xp_unspent": 0
 }
