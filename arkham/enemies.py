@@ -61,13 +61,6 @@ def can_be_evaded(state: GameState, enemy_id: str) -> bool:
 
 def enemy_fight_value(state: GameState, enemy_id: str) -> int:
     value = int(enemy_card(state, enemy_id).get("enemy_fight") or 1)
-    if (
-        state.enemies[enemy_id].card_code == "01175"
-        and not mind_wiped(state, enemy_id)
-        and state.enemies[enemy_id].engaged_with == state.investigator.id
-        and state.investigator.sanity - state.investigator.horror <= 4
-    ):
-        value += 1
     if state.scenario in DEVOURER_FAMILY:
         from .scenarios import the_devourer_below
 
@@ -77,13 +70,6 @@ def enemy_fight_value(state: GameState, enemy_id: str) -> int:
 
 def enemy_evade_value(state: GameState, enemy_id: str) -> int:
     value = int(enemy_card(state, enemy_id).get("enemy_evade") or 1)
-    if (
-        state.enemies[enemy_id].card_code == "01175"
-        and not mind_wiped(state, enemy_id)
-        and state.enemies[enemy_id].engaged_with == state.investigator.id
-        and state.investigator.sanity - state.investigator.horror <= 4
-    ):
-        value += 1
     if state.scenario in DEVOURER_FAMILY:
         from .scenarios import the_devourer_below
 
@@ -200,8 +186,6 @@ def disengage_enemy(state: GameState, events: list[dict[str, Any]], enemy_id: st
     if exhaust:
         enemy.exhausted = True
     log_event(events, "enemy_disengaged", f"{enemy_log_name(state, enemy_id)} disengaged.", enemy=enemy_id)
-    if exhaust:
-        log_event(events, "enemy_exhausted", f"{enemy_log_name(state, enemy_id)} exhausted after being evaded.", enemy=enemy_id)
 
 
 def evade_enemy(state: GameState, events: list[dict[str, Any]], enemy_id: str) -> None:
@@ -366,10 +350,6 @@ def attack(
 
 def legal_dodge_card(state: GameState) -> str | None:
     if state.investigator.resources < 1:
-        return None
-    from . import actions
-
-    if actions.dissonant_blocks(state, "01023"):
         return None
     ids = player_cards.hand_ids(state, "01023")
     return ids[0] if ids else None
@@ -564,7 +544,6 @@ def defeat_enemy(state: GameState, events: list[dict[str, Any]], enemy_id: str) 
         return
     card = enemy_card(state, enemy_id)
     enemy = state.enemies.pop(enemy_id)
-    state.limits["enemies_defeated"] = int(state.limits.get("enemies_defeated", 0)) + 1
     state.card_instances[enemy_id].doom = 0
     state.card_instances[enemy_id].clues = 0
     state.limits["last_defeated_enemy_location"] = enemy.location_id
@@ -572,9 +551,7 @@ def defeat_enemy(state: GameState, events: list[dict[str, Any]], enemy_id: str) 
         state.locations[enemy.location_id].enemy_ids.remove(enemy_id)
     if enemy_id in state.investigator.engaged_enemies:
         state.investigator.engaged_enemies.remove(enemy_id)
-    if player_cards.is_weakness(state, enemy_id):
-        player_cards.discard_to_owner_pile(state, enemy_id)
-    elif int(card.get("victory") or 0) > 0:
+    if int(card.get("victory") or 0) > 0:
         state.victory_display.append(enemy_id)
         state.card_instances[enemy_id].zone = "victory"
     else:
@@ -614,8 +591,6 @@ def damage_enemy(state: GameState, events: list[dict[str, Any]], enemy_id: str, 
 def present_enemy_defeat_reactions(state: GameState, events: list[dict[str, Any]], enemy_id: str) -> None:
     if state.status != "in_progress":
         return
-    from . import actions
-
     options: list[DecisionOption] = []
     location = state.locations[state.investigator.location_id]
     roland_key = f"roland_reaction:{state.round}"
@@ -627,12 +602,7 @@ def present_enemy_defeat_reactions(state: GameState, events: list[dict[str, Any]
             )
         )
     evidence = player_cards.hand_ids(state, "01022")
-    if (
-        evidence
-        and state.investigator.resources >= 1
-        and location.clues > 0
-        and not actions.dissonant_blocks(state, "01022")
-    ):
+    if evidence and state.investigator.resources >= 1 and location.clues > 0:
         options.append(
             DecisionOption(
                 "Play Evidence! to discover 1 clue",
@@ -659,13 +629,9 @@ def resolve_enemy_defeated_reaction(state: GameState, payload: dict[str, Any], e
     reaction = str(payload.get("reaction"))
     if reaction == "roland":
         state.limits[f"roland_reaction:{state.round}"] = True
-        discover_clue(
-            state,
-            1,
-            events,
-            event_type="roland_reaction",
-            message=f"{state.investigator.name} discovered 1 clue after defeating an enemy.",
-        )
+        discovered = discover_clue(state, 1, events)
+        if discovered:
+            log_event(events, "roland_reaction", f"{state.investigator.name} discovered {discovered} clue after defeating an enemy.", amount=discovered)
     elif reaction == "evidence":
         card_id = str(payload.get("card"))
         if card_id in state.investigator.hand and state.investigator.resources >= 1:

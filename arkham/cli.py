@@ -194,30 +194,11 @@ def resolve_run_dir(run_arg: str | None, *, for_new: bool = False) -> Path:
         return Path(run_arg)
     if os.environ.get("AHLCG_RUN"):
         return Path(os.environ["AHLCG_RUN"])
-    campaign_dir = None
-    if os.environ.get("AHLCG_CAMPAIGN"):
-        # A campaign lane's current run is defined by its own campaign state,
-        # never by the global pointer — parallel lanes race on .current_run
-        # (ledger 113) and their twin runs pass every scenario-name check.
-        import json
-
-        campaign_dir = Path(os.environ["AHLCG_CAMPAIGN"])
-        campaign_json = campaign_dir / "campaign.json"
-        if campaign_json.exists():
-            active = json.loads(campaign_json.read_text(encoding="utf-8")).get("active_run")
-            if active:
-                return Path(active)
     current = Path.cwd() / ".current_run"
     if current.exists():
         text = current.read_text(encoding="utf-8").strip()
         if text:
-            run_dir = Path(text)
-            if campaign_dir is not None and campaign_dir.resolve() not in run_dir.resolve().parents:
-                raise EngineError(
-                    f"run {run_dir} does not belong to campaign {campaign_dir}; "
-                    "refusing to use a foreign run (pass --run or set AHLCG_RUN to override)"
-                )
-            return run_dir
+            return Path(text)
     if for_new:
         return Path("runs") / "current"
     raise EngineError("run directory not specified; use --run, AHLCG_RUN, or .current_run")

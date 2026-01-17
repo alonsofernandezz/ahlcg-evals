@@ -304,15 +304,7 @@ def build_player_deck(
     if not deck.get("campaign_deck"):
         from ..upgrade import XP_CARD_CODES
 
-        # Leo De Luca 01048 is printed in suggested starter decks, so it is
-        # legal there even though its corrected XP metadata now puts it in the
-        # implemented purchase pool.
-        starter_exceptions = {"01048"}
-        xp_codes = sorted(
-            str(code)
-            for code in deck["slots"]
-            if str(code) in XP_CARD_CODES and str(code) not in starter_exceptions
-        )
+        xp_codes = sorted(str(code) for code in deck["slots"] if str(code) in XP_CARD_CODES)
         if xp_codes:
             raise EngineError(f"deck contains unimplemented card codes: {', '.join(xp_codes)}")
     deck_ids: list[str] = []
@@ -423,18 +415,16 @@ def resolve_scenario_choice(
     elif choice == "agenda1_horror":
         from ..effects import start_damage_assignment
 
+        set_agenda_2(state, events)
         start_damage_assignment(
             state,
             events,
             source="What's Going On?!",
             damage=0,
             horror=2,
-            resume={"kind": "scenario", "choice": "finish_agenda1_horror"},
+            resume={"kind": "scenario", "choice": "finish_mythos_after_agenda"},
             rng=rng,
         )
-    elif choice == "finish_agenda1_horror":
-        set_agenda_2(state, events)
-        finish_mythos_after_agenda_choice(state, events, rng)
     elif choice == "finish_mythos_after_agenda":
         finish_mythos_after_agenda_choice(state, events, rng)
     elif choice == "act2_advance":
@@ -546,7 +536,7 @@ def reveal_location(state: GameState, events: list[dict[str, Any]], location_id:
     location.revealed = True
     _, _, shroud, clues, _ = LOCATION_INFO[location_id]
     location.shroud = shroud
-    location.clues += clues
+    location.clues = clues
     log_event(events, "location_revealed", f"{location.name} was revealed.", location=location_id)
 
 
@@ -559,7 +549,7 @@ def reveal_return_location(state: GameState, events: list[dict[str, Any]], locat
     location.revealed = True
     location.name = revealed_name
     location.shroud = shroud
-    location.clues += clues
+    location.clues = clues
     log_event(events, "location_revealed", f"{location.name} was revealed.", location=location_id)
     variant = state.limits.get(f"return_variant:{location_id}")
     if location_id == "hallway":
@@ -729,12 +719,6 @@ def advance_act_2(state: GameState, events: list[dict[str, Any]]) -> None:
     if lita:
         state.card_instances[lita].zone = "story"
         state.locations["parlor"].attached_instance_ids.append(lita)
-        log_event(
-            events,
-            "lita_enters_play",
-            "Lita Chantler was put into play in the Parlor.",
-            card=lita,
-        )
     priest = next((card_id for card_id, instance in state.card_instances.items() if instance.card_code == "01116"), None)
     if priest:
         spawn_enemy(state, events, instance_id=priest, location_id="hallway", engaged=False)
@@ -758,6 +742,7 @@ def present_final_resolution(state: GameState) -> None:
 
 
 def after_enemy_defeated(state: GameState, events: list[dict[str, Any]], enemy_id: str) -> bool:
+    state.limits["enemies_defeated"] = int(state.limits.get("enemies_defeated", 0)) + 1
     if state.card_instances[enemy_id].card_code == "01116" and state.act and state.act.stage == 3:
         advance_act(state, events)
         return True
@@ -846,6 +831,7 @@ def check_agenda_advance(state: GameState, events: list[dict[str, Any]], *, rng:
             # looked like the agenda advanced early.
             present_agenda_1_choice(state)
             return
+        clear_all_doom(state)
         if state.agenda.stage == 2:
             if rng is None:
                 from ..errors import EngineError
@@ -854,7 +840,6 @@ def check_agenda_advance(state: GameState, events: list[dict[str, Any]], *, rng:
             advance_agenda_2(state, events, rng)
             continue
         if state.agenda.stage == 3:
-            clear_all_doom(state)
             agenda_3_doom_out(state, events)
             return
 
@@ -940,15 +925,12 @@ def advance_agenda_2(state: GameState, events: list[dict[str, Any]], rng: Arkham
             break
         state.card_instances[card_id].zone = "encounter_discard"
         state.encounter_discard.append(card_id)
+    state.agenda = AgendaState(code="01107", name="They're Getting Out!", stage=3, threshold=10)
+    log_event(events, "agenda_advanced", "Agenda advanced to They're Getting Out!.")
     if drawn:
         state.limits["encounter_cards_drawn"] = int(state.limits.get("encounter_cards_drawn", 0)) + 1
         log_event(events, "encounter_drawn", f"{state.investigator.name} drew encounter card {card_data.get_card(state.card_instances[drawn].card_code)['name']}.", card=drawn)
         resolve_revelation(state, rng, events, drawn)
-    from ..effects import clear_all_doom
-
-    clear_all_doom(state)
-    state.agenda = AgendaState(code="01107", name="They're Getting Out!", stage=3, threshold=10)
-    log_event(events, "agenda_advanced", "Agenda advanced to They're Getting Out!.")
 
 
 def agenda_3_doom_out(state: GameState, events: list[dict[str, Any]]) -> None:

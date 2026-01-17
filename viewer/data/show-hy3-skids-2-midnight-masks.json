@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01003": {
       "clues": null,
@@ -742,7 +742,7 @@
       "name": "\"Skids\" O'Toole"
     },
     "name": "show-hy3-skids-2-midnight-masks",
-    "run_dir": "./campaigns/show-hy3-skids/runs/c-show-hy3-skids-2",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-hy3-skids/runs/c-show-hy3-skids-2",
     "scenario": "return_to_the_midnight_masks",
     "scenario_card": null,
     "seed": 930302

@@ -1,6 +1,6 @@
 # Phase C7 — XP-card playtest program (GPT-5.6 era)
 
-Goal (2026-07-08): playtest the latter two campaign missions (Return to
+Goal (Clyde, 2026-07-08): playtest the latter two campaign missions (Return to
 Midnight Masks, Return to Devourer Below) with realistically-upgraded decks, and
 exercise **ALL 32 XP cards** in real play. Drivers: gpt-5.6-luna, gpt-5.6-terra
 (via codex), claude-haiku-4.5 (via claude CLI). Auditor: gpt-5.6-sol (transcript +

@@ -1,4 +1,4 @@
-# Fixes batch 3 — findings from review of the sonnet5-return-preview games
+# Fixes batch 3 — findings from Clyde's review of the sonnet5-return-preview games
 
 Read DESIGN.md first. Rules authority: docs_agent/rules_reference.md + vendored JSON;
 flag conflicts in specs/fixes_batch_3_report.md and follow RR/JSON. Engine code only —
@@ -62,7 +62,7 @@ When >1 revealed location ties for most clues (including the all-zero case), pre
 decision listing the tied locations; auto-attach only when a single location leads.
 Keep save/load-safe decision plumbing like other encounter decisions. Test both paths.
 
-## 7. Scoring v3 (ruling from the campaign guide)
+## 7. Scoring v3 (Clyde's ruling from the campaign guide)
 
 Lita is earned in every outcome except R2 without needing to enter play, so the +3
 score bonus is redundant. New formula, both scenarios:

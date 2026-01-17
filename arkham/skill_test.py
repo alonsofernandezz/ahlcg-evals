@@ -38,7 +38,6 @@ def start(
     on_success: dict[str, Any] | None = None,
     on_failure: dict[str, Any] | None = None,
     base_boost: int = 0,
-    revelation_source: str | None = None,
 ) -> None:
     # base_boost carries ability modifiers (Machete's +1, Baseball Bat's +2...)
     # so the started-test log shows the true value, not the pre-boost base.
@@ -57,8 +56,6 @@ def start(
         "on_failure": on_failure or {},
         "base_boost": base_boost,
     }
-    if revelation_source is not None:
-        state.active_skill_test["revelation_source"] = revelation_source
     log_event(events, "skill_test_started", f"Started {skill} test {base} vs {difficulty}.", source=source)
     present_commit_decision(state)
 
@@ -170,7 +167,7 @@ def reveal_token_for_test(state: GameState, rng: ArkhamRng, events: list[dict[st
         state.scenario in DEVOURER_FAMILY
         and current == "elderthing"
         and devourer_ancient_one_in_play(state)
-    ):
+    ) or devourer_location_extra_token(state, test, extra_tokens):
         extra = draw_token(state, rng)
         extra_modifier, extra_autofail = adjusted_token_modifier(state, extra)
         modifier += extra_modifier
@@ -290,8 +287,6 @@ def present_token_reveal_reaction(state: GameState, rng: ArkhamRng, events: list
     test = state.active_skill_test
     if not test:
         return
-    from . import actions
-
     options: list[DecisionOption] = []
     if state.investigator.card_code == "01005" and not player_cards.investigator_text_blank(state) and not test.get("wendy_used") and state.investigator.hand:
         options.extend(
@@ -302,11 +297,7 @@ def present_token_reveal_reaction(state: GameState, rng: ArkhamRng, events: list
             for card_id in state.investigator.hand
             if not player_cards.is_weakness(state, card_id)
         )
-    if (
-        int(test.get("modifier", 0)) < 0
-        and state.investigator.resources >= 2
-        and not actions.dissonant_blocks(state, "01056")
-    ):
+    if int(test.get("modifier", 0)) < 0 and state.investigator.resources >= 2:
         for card_id in player_cards.hand_ids(state, "01056"):
             options.append(DecisionOption("Play Sure Gamble", {"kind": "sure_gamble_reaction", "choice": "play", "card": card_id}))
     if not options:
@@ -341,9 +332,6 @@ def resolve_wendy_token_reaction(
             test["wendy_used"] = True
             log_event(events, "wendy_reaction", "Wendy canceled the chaos token and redrew.", card=discard_id)
             reveal_token_for_test(state, rng, events)
-            present_token_reveal_reaction(state, rng, events)
-            if state.decision_queue:
-                return
     else:
         test["wendy_passed"] = True
     resolve(state, events, rng)
@@ -369,40 +357,6 @@ def resolve_sure_gamble_reaction(
     resolve(state, events, rng)
 
 
-def apply_location_extra_token(
-    state: GameState,
-    events: list[dict[str, Any]],
-    rng: ArkhamRng | None,
-) -> bool:
-    """Resolve location Forced extra tokens only after the revealed token's
-    reaction window.  The marker lives on the test, so Wendy redraws cannot
-    trigger the same once-per-test location ability again."""
-    test = state.active_skill_test
-    if (
-        not test
-        or rng is None
-        or test.get("location_extra_token_used")
-        or not devourer_location_extra_token(state, test, [])
-    ):
-        return False
-    test["location_extra_token_used"] = True
-    extra = draw_token(state, rng)
-    extra_modifier, extra_autofail = adjusted_token_modifier(state, extra)
-    test.setdefault("extra_tokens", []).append(extra)
-    test["modifier"] = int(test.get("modifier", 0)) + extra_modifier
-    test["autofail"] = bool(test.get("autofail")) or extra_autofail
-    log_event(
-        events,
-        "chaos_token",
-        f"Revealed additional token {extra}.",
-        token=extra,
-        modifier=extra_modifier,
-        extra=True,
-    )
-    present_token_reveal_reaction(state, rng, events)
-    return bool(state.decision_queue)
-
-
 def present_post_reveal_decision(state: GameState) -> None:
     test = state.active_skill_test
     if not test:
@@ -422,8 +376,6 @@ def present_post_reveal_decision(state: GameState) -> None:
 def resolve(state: GameState, events: list[dict[str, Any]], rng: ArkhamRng | None = None) -> None:
     test = state.active_skill_test
     if not test:
-        return
-    if apply_location_extra_token(state, events, rng):
         return
     apply_scenario_token_reveal_effects(state, events, rng)
     apply_player_token_reveal_effects(state, events)
@@ -458,7 +410,7 @@ def compute_result(state: GameState, test: dict[str, Any]) -> dict[str, Any]:
     if bool(test["autofail"]):
         value = 0
     auto_success = (
-        revealed_symbol(test, {"eldersign"})
+        test.get("token") == "eldersign"
         and state.investigator.card_code == "01005"
         and not player_cards.investigator_text_blank(state)
         and player_cards.controls_code(state, "01014")
@@ -523,17 +475,11 @@ def present_lucky_decision(state: GameState, result: dict[str, Any]) -> None:
 def legal_lucky_cards(state: GameState) -> list[str]:
     if state.investigator.resources < 1:
         return []
-    from . import actions
-
     ids = player_cards.hand_ids(state, "01080") + player_cards.hand_ids(state, "01084")
     top = player_cards.topmost_discard_event_id(state)
     if top is not None and player_cards.can_play_from_discard_with_amulet(state, top) and state.card_instances[top].card_code in {"01080", "01084"}:
         ids.append(top)
-    return [
-        card_id
-        for card_id in ids
-        if not actions.dissonant_blocks(state, state.card_instances[card_id].card_code)
-    ]
+    return ids
 
 
 def resolve_lucky_would_fail(state: GameState, payload: dict[str, Any], events: list[dict[str, Any]], rng: ArkhamRng | None = None) -> None:
@@ -670,7 +616,9 @@ def apply_callback(
             if clue_count > 1 and discovered > 1:
                 log_event(events, "deduction", f"Deduction discovered {discovered - 1} additional clue.")
             discard_obscuring_fog_at_roland(state, events)
-            present_milan_reaction(state)
+            if player_cards.controls_code(state, "01033"):
+                state.investigator.resources += 1
+                log_event(events, "milan_reaction", f"Dr. Milan Christopher gained {state.investigator.name} 1 resource.")
     elif kind == "fight":
         enemy_id = str(callback["enemy"])
         if success and enemy_id in state.enemies:
@@ -852,10 +800,7 @@ def apply_callback(
             the_devourer_below.gain_madness_weakness(state, events, rng, to_hand=True)
         from .scenarios import the_devourer_below
 
-        if state.decision_queue or state.pending_damage:
-            state.limits["pending_devourer_agenda3"] = True
-        else:
-            the_devourer_below.advance_to_agenda3(state, events)
+        the_devourer_below.advance_to_agenda3(state, events)
     elif kind == "umordhoths_wrath":
         if not success and margin > 0:
             from .scenarios import the_devourer_below
@@ -876,9 +821,6 @@ def apply_callback(
             state.card_instances[lita].owner = state.investigator.id
             state.investigator.play_area.append(lita)
             log_event(events, "lita_recruited", f"{state.investigator.name} took control of Lita Chantler.", card=lita)
-            from . import actions
-
-            actions.enforce_slot_capacity(state, events)
     if success and any(state.card_instances[instance_id].card_code == "01081" for instance_id in committed) and kind in {"evade", "blinding_light"}:
         present_survival_instinct_decision(state)
 
@@ -902,32 +844,6 @@ def apply_committed_skill_effects(
             draw_player_card(state, events, rng)
         if code == "01067":
             heal_roland(state, events, horror=1)
-
-
-def present_milan_reaction(state: GameState) -> None:
-    if not player_cards.controls_code(state, "01033") or player_cards.investigator_text_blank(state):
-        return
-    state.decision_queue.append(
-        PendingDecision(
-            id="milan-reaction",
-            kind="milan_reaction",
-            prompt=f"[Round {state.round} · {state.phase} · {state.investigator.name}] Use Dr. Milan Christopher after successfully investigating?",
-            options=[
-                DecisionOption("Gain 1 resource", {"kind": "milan_reaction", "choice": "gain"}),
-                DecisionOption("Pass", {"kind": "milan_reaction", "choice": "pass"}),
-            ],
-        )
-    )
-
-
-def resolve_milan_reaction(state: GameState, payload: dict[str, Any], events: list[dict[str, Any]]) -> None:
-    if (
-        payload.get("choice") == "gain"
-        and player_cards.controls_code(state, "01033")
-        and not player_cards.investigator_text_blank(state)
-    ):
-        state.investigator.resources += 1
-        log_event(events, "milan_reaction", f"Dr. Milan Christopher gained {state.investigator.name} 1 resource.", amount=1)
 
 
 def present_skill_test_aftermath_reactions(state: GameState, result: dict[str, Any], committed: list[str]) -> None:
@@ -987,17 +903,11 @@ def failed_while_investigating(result: dict[str, Any]) -> bool:
 
 
 def legal_look_what_i_found_cards(state: GameState) -> list[str]:
-    from . import actions
-
     ids = player_cards.hand_ids(state, "01079")
     top = player_cards.topmost_discard_event_id(state)
     if top is not None and player_cards.can_play_from_discard_with_amulet(state, top) and state.card_instances[top].card_code == "01079":
         ids.append(top)
-    return [
-        card_id
-        for card_id in ids
-        if not actions.dissonant_blocks(state, state.card_instances[card_id].card_code)
-    ]
+    return ids
 
 
 def resolve_after_fail_reaction(state: GameState, payload: dict[str, Any], events: list[dict[str, Any]], rng: ArkhamRng | None = None) -> None:
@@ -1165,7 +1075,7 @@ def apply_blinding_light_symbol_loss(
         return
     before = state.investigator.actions_remaining
     state.investigator.actions_remaining = max(0, before - 1)
-    log_event(events, "action_lost", f"Blinding Light caused {state.investigator.name} to lose 1 action.", before=before, after=state.investigator.actions_remaining)
+    log_event(events, "action_lost", "Blinding Light caused Daisy to lose 1 action.", before=before, after=state.investigator.actions_remaining)
 
 
 def revealed_symbol(result: dict[str, Any], symbols: set[str]) -> bool:
@@ -1208,16 +1118,14 @@ def apply_elder_sign_success(
     result: dict[str, Any],
     rng: ArkhamRng | None,
 ) -> None:
-    if not revealed_symbol(result, {"eldersign"}) or not result.get("success"):
+    if result.get("token") != "eldersign" or not result.get("success"):
         return
     if player_cards.investigator_text_blank(state):
         return
     if state.investigator.card_code == "01002":
-        requested = player_cards.controlled_tome_count(state)
-        count = sum(
-            draw_player_card(state, events, rng, log_draw=False) is not None
-            for _ in range(requested)
-        )
+        count = player_cards.controlled_tome_count(state)
+        for _ in range(count):
+            draw_player_card(state, events, rng)
         if count:
             log_event(events, "elder_sign", f"Daisy drew {count} card from her elder sign.", amount=count)
     elif state.investigator.card_code == "01003":
@@ -1308,6 +1216,7 @@ def discard_obscuring_fog_at_roland(state: GameState, events: list[dict[str, Any
     for attachment in list(location.attached_instance_ids):
         if state.card_instances[attachment].card_code == "01168":
             discard_location_attachment(state, events, attachment)
+            log_event(events, "obscuring_fog_discarded", "Obscuring Fog was discarded after a successful investigation.", card=attachment)
             return
 
 

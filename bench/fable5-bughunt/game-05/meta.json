@@ -1,6 +1,6 @@
-﻿{
+{
   "created_at": "2026-07-04T20:04:47+00:00",
-  "deck": "./data/decks/killbray/wendy.json",
+  "deck": "/Users/clyde/ahlcg/data/decks/killbray/wendy.json",
   "difficulty": "standard",
   "engine_version": "0.1.0-phase-a",
   "hidden_sha256": "38735dc02ad9c868ebfcb4e03c79df073b6420e65406a68495a80655941958e3",
@@ -9,7 +9,7 @@
     "id": "wendy",
     "name": "Wendy Adams"
   },
-  "notebook": "./bench/fable5-bughunt/notebook.md",
+  "notebook": "/Users/clyde/ahlcg/bench/fable5-bughunt/notebook.md",
   "scenario": "return_to_the_gathering",
   "seed": 1005,
   "status": "ended",

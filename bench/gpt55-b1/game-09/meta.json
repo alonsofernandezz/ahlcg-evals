@@ -1,6 +1,6 @@
-﻿{
+{
   "created_at": "2026-07-05T19:24:14+00:00",
-  "deck": "./data/decks/killbray/agnes.json",
+  "deck": "/Users/clyde/ahlcg/data/decks/killbray/agnes.json",
   "difficulty": "standard",
   "engine_version": "0.1.0-phase-a",
   "hidden_sha256": "b189ed0cce73e076e8bcd2175a13d44444e72353f9a446b725d0c35685ff5771",
@@ -9,7 +9,7 @@
     "id": "agnes",
     "name": "Agnes Baker"
   },
-  "notebook": "./bench/gpt55-b1/notebook.md",
+  "notebook": "/Users/clyde/ahlcg/bench/gpt55-b1/notebook.md",
   "scenario": "return_to_the_gathering",
   "seed": 1009,
   "status": "ended",

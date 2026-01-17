@@ -14,8 +14,7 @@ from .model import DEVOURER_FAMILY, GATHERING_FAMILY, MIDNIGHT_MASKS_FAMILY, Dec
 from . import skill_test
 
 
-# cat_burglar: printed text — "This action does not provoke attacks of opportunity."
-SAFE_FROM_AOO = {"fight", "asset_fight", "evade", "backstab", "cunning_distraction", "blinding_light", "parley_lita", "parley_mob", "midnight_parley", "resign", "pass", "advance_act", "cat_burglar"}
+SAFE_FROM_AOO = {"fight", "asset_fight", "evade", "backstab", "cunning_distraction", "blinding_light", "parley_lita", "parley_mob", "midnight_parley", "resign", "pass", "advance_act"}
 FREE_ACTIONS = {"fast_ability"}
 NON_ACTIONS = {"advance_act", "pass"}
 
@@ -261,10 +260,6 @@ def execute(state: GameState, payload: dict[str, Any], events: list[dict[str, An
     if action not in NON_ACTIONS | FREE_ACTIONS:
         if not payload.get("cost_paid"):
             spend_action(state, events, action, payload)
-            # Every continuation copies this payload.  Mark the action cost at
-            # the source so AoO, damage-assignment, and other resumes cannot
-            # spend it a second time.
-            payload["cost_paid"] = True
         if not pay_activation_initiation_cost(state, payload, events, rng):
             return
         if action in {"play", "dynamite", "sneak_attack"} and not payload.get("resource_cost_paid"):
@@ -370,7 +365,6 @@ def execute(state: GameState, payload: dict[str, Any], events: list[dict[str, An
             advance_act(state, events, rng=rng)
     elif action == "pass":
         state.investigator.actions_remaining = 0
-        state.limits[f"turn_ended:{state.round}"] = True
         log_event(events, "turn_passed", f"{state.investigator.name} ended their turn.")
     elif action == "resign":
         if state.scenario in MIDNIGHT_MASKS_FAMILY:
@@ -768,6 +762,7 @@ def aoo_attackers(state: GameState, action: str, payload: dict[str, Any] | None 
         enemy_id
         for enemy_id in list(state.investigator.engaged_enemies)
         if (enemy := state.enemies.get(enemy_id)) is not None and not enemy.exhausted
+        and not is_aloof(state, enemy_id)
         and can_attack_investigator(state, enemy_id)
     ]
     if state.scenario in DEVOURER_FAMILY:
@@ -875,23 +870,16 @@ def move(state: GameState, location_id: str, events: list[dict[str, Any]], rng: 
     if state.scenario in GATHERING_FAMILY:
         from .scenarios import the_gathering
 
-        the_gathering.reveal_location(state, events, location_id)
-        engage_ready_enemies_at_roland(state, events)
         the_gathering.after_enter_location(state, events, location_id)
     elif state.scenario in MIDNIGHT_MASKS_FAMILY:
         from .scenarios import the_midnight_masks
 
-        the_midnight_masks.reveal_location(state, events, location_id)
-        engage_ready_enemies_at_roland(state, events)
         the_midnight_masks.after_enter_location(state, events, location_id)
     elif state.scenario in DEVOURER_FAMILY:
         from .scenarios import the_devourer_below
 
-        the_devourer_below.reveal_location(state, events, location_id)
-        engage_ready_enemies_at_roland(state, events)
         the_devourer_below.after_enter_location(state, events, location_id, rng=rng)
-    else:
-        engage_ready_enemies_at_roland(state, events)
+    engage_ready_enemies_at_roland(state, events)
 
 
 def play_card(
@@ -985,6 +973,8 @@ def can_enter_play_unique(state: GameState, card_code: str) -> bool:
 
 def required_slot_discards(state: GameState, card_id: str) -> list[str]:
     card_code = state.card_instances[card_id].card_code
+    if card_code == "01117":
+        return []
     card = card_data.get_card(card_code)
     slot = slot_type(card)
     if slot is None:
@@ -1103,6 +1093,8 @@ def slotted_asset_ids(state: GameState, slot: str, *, include: str | None = None
             continue
         if instance_id == include or instance_id in state.investigator.play_area or instance_id in state.investigator.threat_area:
             card = card_data.get_card(state.card_instances[instance_id].card_code)
+            if state.card_instances[instance_id].card_code == "01117":
+                continue
             if card.get("type_code") == "asset" and slot_type(card) == slot:
                 result.append(instance_id)
     return result
@@ -2126,8 +2118,6 @@ def queue_close_call_reaction(state: GameState, enemy_id: str) -> None:
     subtype = str(card_data.get_card(state.enemies[enemy_id].card_code).get("subtype_code", ""))
     if subtype in {"weakness", "basicweakness"}:
         return
-    if dissonant_blocks(state, "01083"):
-        return
     ids = [card_id for card_id in player_cards.hand_ids(state, "01083") if state.investigator.resources >= 2]
     if not ids:
         return
@@ -2288,11 +2278,6 @@ def move_without_engaged_enemies(state: GameState, location_id: str, events: lis
     current = state.investigator.location_id
     if location_id not in state.locations or location_id == current:
         return
-    if state.scenario in DEVOURER_FAMILY:
-        from .scenarios import the_devourer_below
-
-        if the_devourer_below.before_move_from_twisting(state, location_id, events, move_mode="effect"):
-            return
     if current in state.locations and state.investigator.id in state.locations[current].investigator_ids:
         state.locations[current].investigator_ids.remove(state.investigator.id)
     discard_barricades_at_location(state, current, events)
@@ -2303,23 +2288,16 @@ def move_without_engaged_enemies(state: GameState, location_id: str, events: lis
     if state.scenario in GATHERING_FAMILY:
         from .scenarios import the_gathering
 
-        the_gathering.reveal_location(state, events, location_id)
-        engage_ready_enemies_at_roland(state, events)
         the_gathering.after_enter_location(state, events, location_id)
     elif state.scenario in MIDNIGHT_MASKS_FAMILY:
         from .scenarios import the_midnight_masks
 
-        the_midnight_masks.reveal_location(state, events, location_id)
-        engage_ready_enemies_at_roland(state, events)
         the_midnight_masks.after_enter_location(state, events, location_id)
     elif state.scenario in DEVOURER_FAMILY:
         from .scenarios import the_devourer_below
 
-        the_devourer_below.reveal_location(state, events, location_id)
-        engage_ready_enemies_at_roland(state, events)
         the_devourer_below.after_enter_location(state, events, location_id)
-    else:
-        engage_ready_enemies_at_roland(state, events)
+    engage_ready_enemies_at_roland(state, events)
 
 
 def sneak_attack(state: GameState, payload: dict[str, Any], events: list[dict[str, Any]]) -> None:

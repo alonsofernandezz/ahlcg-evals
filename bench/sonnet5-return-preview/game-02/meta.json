@@ -1,6 +1,6 @@
-﻿{
+{
   "created_at": "2026-07-04T12:27:51+00:00",
-  "deck": "./data/decks/killbray/daisy.json",
+  "deck": "/Users/clyde/ahlcg/data/decks/killbray/daisy.json",
   "difficulty": "standard",
   "engine_version": "0.1.0-phase-a",
   "hidden_sha256": "d4880ef52ff58b2076a91dde1401c903128dd08f92f1a578c4481f56c992da2e",
@@ -9,7 +9,7 @@
     "id": "daisy",
     "name": "Daisy Walker"
   },
-  "notebook": "./bench/sonnet5-return-preview/notebook.md",
+  "notebook": "/Users/clyde/ahlcg/bench/sonnet5-return-preview/notebook.md",
   "scenario": "return_to_the_gathering",
   "seed": 1002,
   "status": "ended",

@@ -322,7 +322,7 @@ def reveal_location_fields(location: Location) -> None:
         if sub:
             location.name = sub
     location.shroud = int(card.get("shroud") or 0)
-    location.clues += int(card.get("clues") or 0)
+    location.clues = int(card.get("clues") or 0)
 
 
 def reveal_location(state: GameState, events: list[dict[str, Any]], location_id: str) -> None:
@@ -388,15 +388,6 @@ def resolve_scenario_choice(state: GameState, payload: dict[str, Any], events: l
     elif choice == "mysterious_chanting_target":
         the_midnight_masks.place_doom_on_enemy(state, str(payload.get("enemy", "")), 2, events, source="Mysterious Chanting", rng=rng)
         discard_encounter_card(state, str(payload.get("card", "")))
-    elif choice == "chaos_cultist_target":
-        the_midnight_masks.place_doom_on_enemy(
-            state,
-            str(payload.get("enemy", "")),
-            int(payload.get("amount", 1)),
-            events,
-            source="Chaos token",
-            rng=rng,
-        )
     elif choice == "mask_target":
         the_midnight_masks.attach_mask_to_enemy(state, str(payload.get("card", "")), str(payload.get("enemy", "")), events, rng)
     elif choice == "cultist_search_choice":
@@ -436,7 +427,6 @@ def resolve_scenario_choice(state: GameState, payload: dict[str, Any], events: l
         search_madness_weakness_from_deck(state, events, rng)
     elif choice == "yellow_sign_madness":
         resolve_yellow_sign_madness_choice(state, payload, events, rng)
-    the_midnight_masks.resolve_pending_mask_after_spawn(state, events, rng)
 
 
 def discard_random_from_hand(state: GameState, events: list[dict[str, Any]], rng: ArkhamRng, count: int, *, source: str) -> None:
@@ -521,19 +511,12 @@ def after_enter_location(state: GameState, events: list[dict[str, Any]], locatio
         advance_act(state, events, rng=rng)
 
 
-def before_move_from_twisting(
-    state: GameState,
-    destination: str,
-    events: list[dict[str, Any]],
-    *,
-    move_mode: str = "normal",
-) -> bool:
+def before_move_from_twisting(state: GameState, destination: str, events: list[dict[str, Any]]) -> bool:
     if state.limits.pop("twisting_move_allowed", False):
         return False
     if state.locations[state.investigator.location_id].code != "01151":
         return False
     state.limits["twisting_destination"] = destination
-    state.limits["twisting_move_mode"] = move_mode
     from .. import skill_test
 
     skill_test.start(state, events, skill="intellect", difficulty=3, source="Twisting Paths", on_success={"kind": "devourer_twisting"}, on_failure={"kind": "devourer_twisting"})
@@ -542,15 +525,11 @@ def before_move_from_twisting(
 
 def finish_twisting_paths_move(state: GameState, events: list[dict[str, Any]], *, success: bool, rng: ArkhamRng | None = None) -> None:
     destination = str(state.limits.pop("twisting_destination", ""))
-    move_mode = str(state.limits.pop("twisting_move_mode", "normal"))
     if success and destination in state.locations:
         state.limits["twisting_move_allowed"] = True
-        from ..actions import move, move_without_engaged_enemies
+        from ..actions import move
 
-        if move_mode == "effect":
-            move_without_engaged_enemies(state, destination, events)
-        else:
-            move(state, destination, events, rng=rng)
+        move(state, destination, events, rng=rng)
 
 
 def advance_act(state: GameState, events: list[dict[str, Any]], rng: ArkhamRng | None = None) -> None:
@@ -657,6 +636,8 @@ def spawn_umordhoth(state: GameState, events: list[dict[str, Any]]) -> None:
 
 
 def spawn_enemy_from_top_until(state: GameState, events: list[dict[str, Any]], *, rng: ArkhamRng | None, location_id: str, monster_only: bool, doom: int) -> str | None:
+    from ..enemies import spawn_enemy
+
     if state.encounter_discard:
         if rng is None:
             raise EngineError("encounter dig reshuffle requires the game RNG")
@@ -682,16 +663,9 @@ def spawn_enemy_from_top_until(state: GameState, events: list[dict[str, Any]], *
             state.encounter_discard.append(card_id)
             state.card_instances[card_id].zone = "encounter_discard"
     if found:
-        the_midnight_masks.spawn_enemy_resolving_forced(state, events, found, location_id, rng)
+        spawn_enemy(state, events, instance_id=found, location_id=location_id)
         if doom and found in state.enemies:
-            the_midnight_masks.place_doom_on_enemy(
-                state,
-                found,
-                doom,
-                events,
-                source="Death to the Intruders",
-                rng=rng,
-            )
+            state.enemies[found].doom += doom
     return found
 
 
@@ -700,10 +674,6 @@ def total_doom(state: GameState) -> int:
 
 
 def end_mythos_phase(state: GameState, events: list[dict[str, Any]], rng: ArkhamRng | None) -> None:
-    key = f"mythos_end_forced:{state.round}"
-    if state.limits.get(key):
-        return
-    state.limits[key] = True
     for enemy_id in sorted(state.enemies):
         code = state.enemies[enemy_id].card_code
         if code == "01170":
@@ -724,7 +694,7 @@ def end_enemy_phase(state: GameState, events: list[dict[str, Any]], rng: ArkhamR
             doom = enemy.doom
             if doom:
                 enemy.doom = 0
-                place_doom(state, doom, events, source="Corpse-Taker", rng=rng)
+                place_doom(state, doom, events, source="Corpse-Taker", rng=rng, can_advance=True)
             continue
         step = next_step_toward(state, enemy.location_id, "main_path", enemy_id)
         if step:
@@ -818,19 +788,11 @@ def encounter_revelation(state: GameState, rng: ArkhamRng, events: list[dict[str
         discard_encounter_card(state, instance_id)
         from .. import skill_test
 
-        skill_test.start(
-            state,
-            events,
-            skill="willpower",
-            difficulty=5,
-            source="Umordhoth's Wrath",
-            on_failure={"kind": "umordhoths_wrath"},
-            revelation_source=instance_id,
-        )
+        skill_test.start(state, events, skill="willpower", difficulty=5, source="Umordhoth's Wrath", on_failure={"kind": "umordhoths_wrath"})
         return True
     if code == "01178":
         discard_encounter_card(state, instance_id)
-        state.decision_queue.append(
+        state.decision_queue = [
             PendingDecision(
                 id="offer-of-power",
                 kind="scenario",
@@ -840,21 +802,13 @@ def encounter_revelation(state: GameState, rng: ArkhamRng, events: list[dict[str
                     DecisionOption("Take 2 horror", {"kind": "scenario", "choice": "offer_power_horror"}),
                 ],
             )
-        )
+        ]
         return True
     if code == "01176":
         discard_encounter_card(state, instance_id)
         from .. import skill_test
 
-        skill_test.start(
-            state,
-            events,
-            skill="willpower",
-            difficulty=4,
-            source="The Yellow Sign",
-            on_failure={"kind": "yellow_sign"},
-            revelation_source=instance_id,
-        )
+        skill_test.start(state, events, skill="willpower", difficulty=4, source="The Yellow Sign", on_failure={"kind": "yellow_sign"})
         return True
     if code == "01182":
         state.investigator.threat_area.append(instance_id)
@@ -876,13 +830,6 @@ def encounter_revelation(state: GameState, rng: ArkhamRng, events: list[dict[str
 
 
 def discard_encounter_card(state: GameState, instance_id: str) -> None:
-    if instance_id in state.card_instances and player_cards.is_weakness(state, instance_id):
-        if instance_id in state.encounter_deck:
-            state.encounter_deck.remove(instance_id)
-        if instance_id in state.encounter_discard:
-            state.encounter_discard.remove(instance_id)
-        player_cards.discard_to_owner_pile(state, instance_id)
-        return
     if instance_id in state.encounter_deck:
         state.encounter_deck.remove(instance_id)
     if instance_id not in state.encounter_discard:
@@ -948,10 +895,7 @@ def apply_token_aftermath(state: GameState, events: list[dict[str, Any]], result
         nearest = nearest_enemies_any(state)
         amount = 1 if state.difficulty in {"easy", "standard"} else 2
         if nearest:
-            if len(nearest) == 1:
-                the_midnight_masks.place_doom_on_enemy(state, nearest[0], amount, events, source="Chaos token", rng=rng)
-            else:
-                the_midnight_masks.present_chaos_cultist_target(state, nearest, amount)
+            the_midnight_masks.place_doom_on_enemy(state, nearest[0], amount, events, source="Chaos token", rng=rng)
     if "tablet" in tokens and not result.get("reveal_effects_applied") and monster_at_investigator_location(state):
         from ..effects import start_damage_assignment
 
@@ -969,10 +913,7 @@ def apply_token_reveal_effects(state: GameState, events: list[dict[str, Any]], t
         nearest = nearest_enemies_any(state)
         amount = 1 if state.difficulty in {"easy", "standard"} else 2
         if nearest:
-            if len(nearest) == 1:
-                the_midnight_masks.place_doom_on_enemy(state, nearest[0], amount, events, source="Chaos token", rng=rng)
-            else:
-                the_midnight_masks.present_chaos_cultist_target(state, nearest, amount, mid_test=True)
+            the_midnight_masks.place_doom_on_enemy(state, nearest[0], amount, events, source="Chaos token", rng=rng)
     if "tablet" in tokens and monster_at_investigator_location(state):
         from ..effects import start_damage_assignment
 
@@ -1125,12 +1066,8 @@ def after_skill_test(state: GameState, events: list[dict[str, Any]], test: dict[
     if not result.get("success") or state.locations[state.investigator.location_id].code != "50033":
         return
     key = f"great_willow:{state.round}"
-    source_id = str(test.get("revelation_source", ""))
-    if (
-        state.limits.get(key)
-        or source_id not in state.card_instances
-        or card_data.get_card(state.card_instances[source_id].card_code).get("type_code") != "treachery"
-    ):
+    source = str(test.get("source", ""))
+    if state.limits.get(key) or source.startswith(("Investigate", "Fight", "Evade", "Disrupting")):
         return
     state.limits[key] = True
     from ..effects import log_event
@@ -1150,12 +1087,8 @@ def discard_enemy_from_play(state: GameState, enemy_id: str) -> None:
         state.locations[enemy.location_id].enemy_ids.remove(enemy_id)
     if enemy_id in state.investigator.engaged_enemies:
         state.investigator.engaged_enemies.remove(enemy_id)
-    if player_cards.is_weakness(state, enemy_id):
-        player_cards.discard_to_owner_pile(state, enemy_id)
-    else:
-        state.card_instances[enemy_id].zone = "encounter_discard"
-        if enemy_id not in state.encounter_discard:
-            state.encounter_discard.append(enemy_id)
+    state.card_instances[enemy_id].zone = "encounter_discard"
+    state.encounter_discard.append(enemy_id)
 
 
 def resign(state: GameState, events: list[dict[str, Any]]) -> None:

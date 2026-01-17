@@ -188,21 +188,6 @@ def main() -> int:
     scores_by_game(out_dir / "scores_by_game_b2.svg", B2_AGENTS,
                    "Score per game — open-weights run (same seeds and rotation)")
     second_visit_deltas(out_dir / "second_visit_deltas.svg")
-    B4_AGENTS = [
-        ("sol56-b4", "GPT-5.6 Sol", "#c05621"),
-        ("terra56-b4", "GPT-5.6 Terra", "#2f855a"),
-        ("luna56-b4", "GPT-5.6 Luna", "#2b6cb0"),
-    ]
-    scores_by_game(out_dir / "scores_by_game_b4.svg", B4_AGENTS,
-                   "Score per game — GPT-5.6 family (same seeds and rotation)")
-    if steps_and_score(out_dir / "steps_vs_score_b4.svg", B4_AGENTS, "Game length vs score — GPT-5.6 family"):
-        print("steps_vs_score_b4.svg written")
-    scores_by_game(
-        out_dir / "scores_by_game_kimi_gen.svg",
-        [("kimi26-b2", "Kimi k2.6 (2026-07-08)", "#718096"),
-         ("kimi3-b5", "Kimi K3 (2026-07-16)", "#dd6b20")],
-        "Kimi k2.6 vs Kimi K3 — same 10 seeds, one generation apart",
-    )
     scores_by_game(
         out_dir / "scores_by_game_hy3_b3.svg",
         [("hy3-b2", "Hunyuan 3 (b2: destructive compaction)", "#718096"),
@@ -213,105 +198,8 @@ def main() -> int:
         print("steps_vs_score_b1.svg written")
     if steps_and_score(out_dir / "steps_vs_score_b2.svg", B2_AGENTS, "Game length vs score — open-weights run (China open models)"):
         print("steps_vs_score_b2.svg written")
-    if wave7_scatter(out_dir / "wave7_cost_vs_score.svg", "cost",
-                     "API-equivalent cost for all 5 campaigns (USD, log scale) \u2014 cheaper \u2192",
-                     "Wave 7: campaign score vs cost", log_x=True):
-        print("wave7_cost_vs_score.svg written")
-    if wave7_scatter(out_dir / "wave7_time_vs_score.svg", "hours",
-                     "wall-clock time for all 5 campaigns \u2014 faster \u2192",
-                     "Wave 7: campaign score vs time"):
-        print("wave7_time_vs_score.svg written")
     print(f"charts written to {out_dir}/")
     return 0
-
-
-
-
-WAVE7_COLORS = {
-    "fable": "#6b46c1", "sonnet": "#d69e2e", "opus": "#2b6cb0",
-    "sol": "#c05621", "terra": "#2f855a", "luna": "#38a169",
-    "hy3": "#718096", "k3": "#dd6b20", "opus5": "#1a56db",
-    "dsv4f": "#0d9488",
-}
-WAVE7_NAMES = {
-    "fable": "Fable 5", "sonnet": "Sonnet 5", "opus": "Opus 4.8",
-    "sol": "GPT-5.6 Sol", "terra": "GPT-5.6 Terra", "luna": "GPT-5.6 Luna",
-    "hy3": "Hunyuan 3", "k3": "Kimi K3", "opus5": "Opus 5",
-    "dsv4f": "DeepSeek V4 Flash",
-}
-
-
-def wave7_scatter(out: Path, x_key: str, x_label: str, title: str, log_x: bool = False) -> bool:
-    """Up-and-to-the-right scatter: score on y; cost/time on a REVERSED x
-    (most expensive/slowest on the left, cheapest/fastest on the right)."""
-    import math
-
-    summary_path = ROOT / "results" / "wave7_summary.json"
-    if not summary_path.exists():
-        return False
-    lanes = json.loads(summary_path.read_text())["lanes"]
-    pts = []
-    for lane, b in lanes.items():
-        if lane not in WAVE7_NAMES or not b.get("score_total"):
-            continue
-        x = b["seconds"] / 3600 if x_key == "hours" else (b["cli_cost_usd"] or b["list_cost_usd"])
-        pts.append((lane, x, b["score_total"]))
-    if not pts:
-        return False
-    width, height = 760, 460
-    left, right, top, bottom = 64, 30, 46, 64
-    plot_w, plot_h = width - left - right, height - top - bottom
-    xs = [p[1] for p in pts]
-    ys = [p[2] for p in pts]
-    if log_x:
-        x_lo, x_hi = min(xs) * 0.6, max(xs) * 1.8
-        def fx(v):  # reversed: high cost -> left
-            frac = (math.log10(v) - math.log10(x_lo)) / (math.log10(x_hi) - math.log10(x_lo))
-            return left + (1 - frac) * plot_w
-    else:
-        x_lo, x_hi = 0, max(xs) * 1.15
-        def fx(v):
-            return left + (1 - (v - x_lo) / (x_hi - x_lo)) * plot_w
-    y_hi = max(ys) * 1.2
-    def fy(v):
-        return top + plot_h - v / y_hi * plot_h
-
-    parts = svg_header(width, height)
-    parts.append(f'<text x="{left}" y="24" font-size="17" font-weight="bold">{title}</text>')
-    for gy in range(0, int(y_hi) + 1, 5):
-        parts.append(f'<line x1="{left}" y1="{fy(gy)}" x2="{left+plot_w}" y2="{fy(gy)}" stroke="#eee"/>')
-        parts.append(f'<text x="{left-8}" y="{fy(gy)+4}" font-size="11" text-anchor="end" fill="#555">{gy}</text>')
-    if log_x:
-        ticks = [t for t in (0.25, 0.5, 1, 2, 5, 10, 20, 50, 100, 200) if x_lo <= t <= x_hi]
-        fmt = lambda t: f"${t:g}"
-    else:
-        step = max(1, round(x_hi / 6))
-        ticks = [v for v in range(0, int(x_hi) + 1, step)]
-        fmt = lambda t: f"{t:g}h"
-    for t in ticks:
-        if not log_x and t == 0:
-            continue
-        parts.append(f'<line x1="{fx(t)}" y1="{top}" x2="{fx(t)}" y2="{top+plot_h}" stroke="#eee"/>')
-        parts.append(f'<text x="{fx(t)}" y="{top+plot_h+18}" font-size="11" text-anchor="middle" fill="#555">{fmt(t)}</text>')
-    parts.append(f'<text x="{left+plot_w/2}" y="{height-14}" font-size="12" text-anchor="middle" fill="#555">{x_label}</text>')
-    parts.append(f'<text x="16" y="{top+plot_h/2}" font-size="12" fill="#555" transform="rotate(-90 16 {top+plot_h/2})" text-anchor="middle">campaign score (5 campaigns, seeds 9401\u20139405) \u2014 higher is better</text>')
-    parts.append(f'<text x="{left+plot_w-6}" y="{top+16}" font-size="11" text-anchor="end" fill="#8a6bb8">\u2197 up and to the right is better</text>')
-    placed = []  # (x, y) of already-placed labels; nudge collisions apart
-    for lane, x, y in sorted(pts, key=lambda p: (fx(p[1]), fy(p[2]))):
-        color = WAVE7_COLORS[lane]
-        parts.append(f'<circle cx="{fx(x)}" cy="{fy(y)}" r="7" fill="{color}" opacity="0.85"/>')
-        anchor = "start" if fx(x) < left + plot_w * 0.75 else "end"
-        dx = 11 if anchor == "start" else -11
-        lx, ly = fx(x) + dx, fy(y) + 4
-        for px, py in placed:
-            if abs(lx - px) < 110 and abs(ly - py) < 15:
-                ly = py + 16  # push below the earlier label
-        placed.append((lx, ly))
-        parts.append(f'<text x="{lx}" y="{ly}" font-size="12" font-weight="bold" fill="{color}" text-anchor="{anchor}">{WAVE7_NAMES[lane]}</text>')
-    parts.append("</svg>")
-    out.write_text("\n".join(parts), encoding="utf-8")
-    return True
-
 
 
 if __name__ == "__main__":

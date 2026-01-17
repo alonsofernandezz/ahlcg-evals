@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # Redeploy the viewer (with current exports AND the local card-image cache) to
 # GitHub Pages. The image cache stays out of main (gitignored) but ships with
 # the site so first loads don't depend on arkhamdb hotlink throttling.
@@ -14,8 +14,8 @@ trap 'rm -rf "$TMP"' EXIT
 cp -R viewer/. "$TMP/"
 
 git -C "$TMP" init -q -b gh-pages
-git -C "$TMP" add -A
-git -C "$TMP" commit -q -m "Deploy viewer $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+git -C "$TMP" -c user.name="Clyde" -c user.email="clydeiii@gmail.com" add -A
+git -C "$TMP" -c user.name="Clyde" -c user.email="clydeiii@gmail.com" commit -q -m "Deploy viewer $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 git -C "$TMP" push -q -f "$REMOTE_URL" gh-pages:gh-pages
 
-echo "Deployed. Site: https://arkhambench.github.io/ (Pages rebuild takes ~1 min)"
+echo "Deployed. Site: https://clydeiii.github.io/arkhambench/ (Pages rebuild takes ~1 min)"

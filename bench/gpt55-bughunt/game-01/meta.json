@@ -1,6 +1,6 @@
-﻿{
+{
   "created_at": "2026-07-04T20:26:59+00:00",
-  "deck": "./data/decks/killbray/roland.json",
+  "deck": "/Users/clyde/ahlcg/data/decks/killbray/roland.json",
   "difficulty": "standard",
   "engine_version": "0.1.0-phase-a",
   "hidden_sha256": "42faf8afd12a3103e3540e5271a7ad7634550158cd12f3a41c5892edb186fd9e",
@@ -9,7 +9,7 @@
     "id": "roland",
     "name": "Roland Banks"
   },
-  "notebook": "./bench/gpt55-bughunt/notebook.md",
+  "notebook": "/Users/clyde/ahlcg/bench/gpt55-bughunt/notebook.md",
   "scenario": "return_to_the_gathering",
   "seed": 1001,
   "status": "ended",
