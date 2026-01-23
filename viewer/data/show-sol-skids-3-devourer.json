@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": {
     "01003": {
       "clues": null,
@@ -1066,7 +1066,7 @@
       "name": "\"Skids\" O'Toole"
     },
     "name": "show-sol-skids-3-devourer",
-    "run_dir": "/Users/clyde/ahlcg/campaigns/show-sol-skids/runs/c-show-sol-skids-3",
+    "run_dir": "./campaigns/show-sol-skids/runs/c-show-sol-skids-3",
     "scenario": "return_to_the_devourer_below",
     "scenario_card": null,
     "seed": 940303

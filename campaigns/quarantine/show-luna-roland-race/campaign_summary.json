@@ -1,4 +1,4 @@
-{
+﻿{
   "campaign": "return_to_night_of_the_zealot",
   "campaign_score": 1,
   "investigator": "roland",
@@ -38,7 +38,7 @@
     },
     {
       "resolution": "no_resolution",
-      "run": "/Users/clyde/ahlcg/campaigns/show-luna-roland/runs/c-show-luna-roland-3",
+      "run": "./campaigns/show-luna-roland/runs/c-show-luna-roland-3",
       "scenario": "return_to_the_devourer_below",
       "score": 0,
       "status": "complete",

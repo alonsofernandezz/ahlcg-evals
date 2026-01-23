@@ -1,4 +1,4 @@
-The audit is complete. All evidence gathered — here is the report.
+﻿The audit is complete. All evidence gathered — here is the report.
 
 ---
 
@@ -29,4 +29,4 @@ Everything else is clean. For the record, what I verified:
 
 **Continuity** — Trauma accumulation 2+1+1=4 is internally consistent with the recorded deltas and appears as starting horror in each next transcript (2/5 in MM, 3/5 in DB) — internally correct, though the "2" itself is the contaminated value. House standing → MM began at Your House ✓. Ghoul Priest alive → MM encounter deck totals 24 (18 remaining + 6 drawn = 23 Return-MM cards + priest), consistent with the shuffle-in ✓. Five cultists got away → 3 doom on DB agenda 1a (matches the campaign guide's 5–6→3 tier), logged at setup ✓. past_midnight false → no opening-hand discard in DB ✓. Elderthing token added and actually revealed in DB R2 ✓. Victoria Devereux interrogation and the got-away list persist to the final log (the entry-25 fix holds — DB recording didn't clobber MM fields) ✓. Roland killed in scenario 3 → killed_investigators, arkham_succumbed, campaign complete with no further scenarios ✓.
 
-One cosmetic observation, not filed as a finding: the three run pointers mix relative and absolute path formats (`campaigns/...` vs `/Users/clyde/ahlcg/campaigns/...`) in both this campaign and Sol's — harmless but worth normalizing if anything ever joins on those paths.
+One cosmetic observation, not filed as a finding: the three run pointers mix relative and absolute path formats (`campaigns/...` vs `./campaigns/...`) in both this campaign and Sol's — harmless but worth normalizing if anything ever joins on those paths.

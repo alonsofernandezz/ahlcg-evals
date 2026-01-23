@@ -1,6 +1,6 @@
-{
+﻿{
   "created_at": "2026-07-04T19:32:17+00:00",
-  "deck": "/Users/clyde/ahlcg/data/decks/killbray/agnes.json",
+  "deck": "./data/decks/killbray/agnes.json",
   "difficulty": "standard",
   "engine_version": "0.1.0-phase-a",
   "hidden_sha256": "595248f1f4799a2d196c272231dbe27c76fcabe7da3980ad782e68b0232de16f",
@@ -9,7 +9,7 @@
     "id": "agnes",
     "name": "Agnes Baker"
   },
-  "notebook": "/Users/clyde/ahlcg/bench/fable5-bughunt/notebook.md",
+  "notebook": "./bench/fable5-bughunt/notebook.md",
   "scenario": "return_to_the_gathering",
   "seed": 1004,
   "status": "ended",

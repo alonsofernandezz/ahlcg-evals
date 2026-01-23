@@ -1,4 +1,4 @@
-{
+﻿{
   "campaign": "return_to_night_of_the_zealot",
   "chaos_bag_additions": [
     "elderthing"
@@ -102,7 +102,7 @@
   "scenarios": [
     {
       "resolution": "no_resolution",
-      "run": "/Users/clyde/ahlcg/campaigns/show-sol-roland/runs/c-show-sol-roland-1",
+      "run": "./campaigns/show-sol-roland/runs/c-show-sol-roland-1",
       "scenario": "return_to_the_gathering",
       "score": 0,
       "status": "complete",
@@ -114,7 +114,7 @@
     },
     {
       "resolution": "R1",
-      "run": "/Users/clyde/ahlcg/campaigns/show-sol-roland/runs/c-show-sol-roland-2",
+      "run": "./campaigns/show-sol-roland/runs/c-show-sol-roland-2",
       "scenario": "return_to_the_midnight_masks",
       "score": 0,
       "status": "complete",

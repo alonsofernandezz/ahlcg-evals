@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": {
     "01001": {
       "clues": null,
@@ -985,7 +985,7 @@
       "name": "Roland Banks"
     },
     "name": "show-luna-roland-1-gathering",
-    "run_dir": "/Users/clyde/ahlcg/campaigns/show-luna-roland/runs/c-show-luna-roland-1",
+    "run_dir": "./campaigns/show-luna-roland/runs/c-show-luna-roland-1",
     "scenario": "return_to_the_gathering",
     "scenario_card": "01104",
     "seed": 940101

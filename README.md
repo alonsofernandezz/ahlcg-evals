@@ -1,7 +1,7 @@
-﻿# ArkhamBench
+# ArkhamBench
 
-**Live results:** [arkhambench.github.io/results.html](https://arkhambench.github.io/results.html)
--- leaderboard, cost/speed charts, and playtest findings . **[Run viewer](https://arkhambench.github.io)**
+**Live results:** [alonsofernandezz.github.io/ahlcg-evals/results.html](https://alonsofernandezz.github.io/ahlcg-evals/results.html)
+-- leaderboard, cost/speed charts, and playtest findings . **[Run viewer](https://alonsofernandezz.github.io/ahlcg-evals)**
 
 A rules-enforcing engine and CLI harness for benchmarking LLM agents on *Arkham Horror: The Card
 Game* solo. Three research questions drive the design: **Can models play** a complex board game --
@@ -76,7 +76,7 @@ from the repo root. The viewer steps through every decision: location map with c
 player board, event ticker, the decision presented with the agent's choice highlighted,
 and double-sided card modals.
 
-**Live viewer:** [arkhambench.github.io](https://arkhambench.github.io) -- redeploy with
+**Live viewer:** [alonsofernandezz.github.io/ahlcg-evals](https://alonsofernandezz.github.io/ahlcg-evals) -- redeploy with
 `scripts/deploy_pages.sh` after exporting new runs.
 
 ---
@@ -281,7 +281,7 @@ lanes, and Kimi K3 audited all sixty artifacts. **K3 filed 40 findings: 23 confi
 Auditor board (confirmed/claims): GPT-5.6 Sol 18/21 (86%) . Fable 5 6/8 .
 GPT-5.5 5/8 . Kimi K3 23/40 (58%) . Hunyuan 3 3/70 (4%).
 
-All fifteen campaigns are browsable in the [viewer](https://arkhambench.github.io)
+All fifteen campaigns are browsable in the [viewer](https://alonsofernandezz.github.io/ahlcg-evals)
 (model groups "-- w6"), and the findings page carries the full trial.
 
 ---
@@ -301,7 +301,7 @@ precision**. All 18 were fixed with per-defect regression tests. The wave also c
 a 32/32 XP-card coverage disposition.
 
 **Interactive findings page:** all benchmark results with every game linked to its
-full replay -- [arkhambench.github.io/results.html](https://arkhambench.github.io/results.html)
+full replay -- [alonsofernandezz.github.io/ahlcg-evals/results.html](https://alonsofernandezz.github.io/ahlcg-evals/results.html)
 
 Full adjudication record: [`specs/bug_adjudications.md`](specs/bug_adjudications.md).
 

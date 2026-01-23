@@ -1,6 +1,6 @@
 # Phase C6 — confirmation prompts for likely-mistake actions
 
-Motivation (Clyde, 2026-07-06): agents repeatedly take actions that cannot help or
+Motivation (2026-07-06): agents repeatedly take actions that cannot help or
 that hurt them without realizing it — investigating a location with no clues
 (Fable's "re-earnable clue" episode), or provoking attacks of opportunity they
 didn't account for (the single most common death cause since the first Sonnet

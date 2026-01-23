@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": {
     "01002": {
       "clues": null,
@@ -904,7 +904,7 @@
       "name": "Daisy Walker"
     },
     "name": "show-sol-daisy-2-midnight-masks",
-    "run_dir": "/Users/clyde/ahlcg/campaigns/show-sol-daisy/runs/c-show-sol-daisy-2",
+    "run_dir": "./campaigns/show-sol-daisy/runs/c-show-sol-daisy-2",
     "scenario": "return_to_the_midnight_masks",
     "scenario_card": null,
     "seed": 940202

@@ -5,7 +5,7 @@ from typing import Any
 
 from . import actions, encounter
 from .cards import player as player_cards
-from .effects import draw_player_card, gain_resource, log_event, process_deferred_agenda_advance, resolve_damage_resume
+from .effects import draw_player_card, gain_resource, log_event, process_deferred_agenda_advance, resolve_damage_resume, resume_damage_continuation
 from .enemies import attack, can_attack_investigator, engage_ready_enemies_at_roland, enemy_name, move_hunters
 from .model import DEVOURER_FAMILY, GATHERING_FAMILY, MIDNIGHT_MASKS_FAMILY, DecisionOption, GameState, PendingDecision
 from .rng import ArkhamRng
@@ -37,6 +37,9 @@ def advance_until_decision(state: GameState, rng: ArkhamRng, events: list[dict[s
             from . import skill_test
 
             skill_test.process_deferred_scenario_token_aftermath(state, events, rng)
+            continue
+        if state.limits.get("deferred_damage_continuation"):
+            resume_damage_continuation(state, events, rng)
             continue
         if state.limits.get("deferred_skill_callback"):
             from . import skill_test
@@ -242,6 +245,8 @@ def run_enemy_phase(state: GameState, events: list[dict[str, Any]], rng: ArkhamR
             state.limits[attacked_key] = sorted(attacked)
             if state.decision_queue:
                 return
+    if present_fast_window(state, "enemy_post", during_turn=False):
+        return
 
 
 def present_enemy_attack_order(state: GameState, attackers: list[str]) -> None:
@@ -272,12 +277,17 @@ def resolve_enemy_attack_order(state: GameState, payload: dict[str, Any], events
 
 
 def run_upkeep_phase(state: GameState, events: list[dict[str, Any]], rng: ArkhamRng | None = None) -> None:
-    # Idempotency guard: the phase loop re-enters this function after the
-    # hand-size discard decision resolves; the ready/draw/resource steps must
-    # only happen once per round (they are not re-run while discarding).
+    if state.status != "in_progress":
+        return
+    if present_fast_window(state, "upkeep_start", during_turn=False):
+        return
+    # The phase loop re-enters this function after decisions resolve. Track the
+    # completed upkeep step so an entry-time decision (such as slot overflow
+    # from drawing The Necronomicon) pauses the phase without either skipping
+    # or repeating the remaining steps.
     key = f"upkeep_done:{state.round}"
-    if not state.limits.get(key):
-        state.limits[key] = True
+    progress = state.limits.get(key)
+    if not progress:
         state.investigator.exhausted = False
         for instance in state.card_instances.values():
             instance.exhausted = False
@@ -285,9 +295,35 @@ def run_upkeep_phase(state: GameState, events: list[dict[str, Any]], rng: Arkham
             enemy.exhausted = False
         log_event(events, "ready_step", "All exhausted cards readied.")
         engage_ready_enemies_at_roland(state, events)
+        state.limits[key] = "ready"
+        if state.status != "in_progress":
+            return
+        if state.decision_queue or state.pending_damage:
+            return
+        progress = "ready"
+    if progress == "ready":
         draw_player_card(state, events, rng)
+        state.limits[key] = "draw"
+        if state.status != "in_progress":
+            return
+        if state.decision_queue or state.pending_damage:
+            return
+        progress = "draw"
+    if progress == "draw":
         gain_resource(state, 1, events)
+        state.limits[key] = "resource"
+        if state.status != "in_progress":
+            return
+        if state.decision_queue or state.pending_damage:
+            return
+        progress = "resource"
+    if progress == "resource":
         discard_dissonant_voices(state, events)
+        state.limits[key] = True
+        if state.status != "in_progress":
+            return
+    if state.status != "in_progress":
+        return
     if len(state.investigator.hand) > 8:
         present_discard_to_size(state)
 

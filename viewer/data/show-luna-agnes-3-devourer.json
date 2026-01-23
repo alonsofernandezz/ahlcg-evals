@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": {
     "01004": {
       "clues": null,
@@ -661,7 +661,7 @@
       "name": "Agnes Baker"
     },
     "name": "show-luna-agnes-3-devourer",
-    "run_dir": "/Users/clyde/ahlcg/campaigns/show-luna-agnes/runs/c-show-luna-agnes-3",
+    "run_dir": "./campaigns/show-luna-agnes/runs/c-show-luna-agnes-3",
     "scenario": "return_to_the_devourer_below",
     "scenario_card": null,
     "seed": 940403

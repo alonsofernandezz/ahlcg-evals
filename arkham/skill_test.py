@@ -290,6 +290,8 @@ def present_token_reveal_reaction(state: GameState, rng: ArkhamRng, events: list
     test = state.active_skill_test
     if not test:
         return
+    from . import actions
+
     options: list[DecisionOption] = []
     if state.investigator.card_code == "01005" and not player_cards.investigator_text_blank(state) and not test.get("wendy_used") and state.investigator.hand:
         options.extend(
@@ -300,7 +302,11 @@ def present_token_reveal_reaction(state: GameState, rng: ArkhamRng, events: list
             for card_id in state.investigator.hand
             if not player_cards.is_weakness(state, card_id)
         )
-    if int(test.get("modifier", 0)) < 0 and state.investigator.resources >= 2:
+    if (
+        int(test.get("modifier", 0)) < 0
+        and state.investigator.resources >= 2
+        and not actions.dissonant_blocks(state, "01056")
+    ):
         for card_id in player_cards.hand_ids(state, "01056"):
             options.append(DecisionOption("Play Sure Gamble", {"kind": "sure_gamble_reaction", "choice": "play", "card": card_id}))
     if not options:
@@ -452,7 +458,7 @@ def compute_result(state: GameState, test: dict[str, Any]) -> dict[str, Any]:
     if bool(test["autofail"]):
         value = 0
     auto_success = (
-        test.get("token") == "eldersign"
+        revealed_symbol(test, {"eldersign"})
         and state.investigator.card_code == "01005"
         and not player_cards.investigator_text_blank(state)
         and player_cards.controls_code(state, "01014")
@@ -517,11 +523,17 @@ def present_lucky_decision(state: GameState, result: dict[str, Any]) -> None:
 def legal_lucky_cards(state: GameState) -> list[str]:
     if state.investigator.resources < 1:
         return []
+    from . import actions
+
     ids = player_cards.hand_ids(state, "01080") + player_cards.hand_ids(state, "01084")
     top = player_cards.topmost_discard_event_id(state)
     if top is not None and player_cards.can_play_from_discard_with_amulet(state, top) and state.card_instances[top].card_code in {"01080", "01084"}:
         ids.append(top)
-    return ids
+    return [
+        card_id
+        for card_id in ids
+        if not actions.dissonant_blocks(state, state.card_instances[card_id].card_code)
+    ]
 
 
 def resolve_lucky_would_fail(state: GameState, payload: dict[str, Any], events: list[dict[str, Any]], rng: ArkhamRng | None = None) -> None:
@@ -975,11 +987,17 @@ def failed_while_investigating(result: dict[str, Any]) -> bool:
 
 
 def legal_look_what_i_found_cards(state: GameState) -> list[str]:
+    from . import actions
+
     ids = player_cards.hand_ids(state, "01079")
     top = player_cards.topmost_discard_event_id(state)
     if top is not None and player_cards.can_play_from_discard_with_amulet(state, top) and state.card_instances[top].card_code == "01079":
         ids.append(top)
-    return ids
+    return [
+        card_id
+        for card_id in ids
+        if not actions.dissonant_blocks(state, state.card_instances[card_id].card_code)
+    ]
 
 
 def resolve_after_fail_reaction(state: GameState, payload: dict[str, Any], events: list[dict[str, Any]], rng: ArkhamRng | None = None) -> None:
@@ -1190,14 +1208,16 @@ def apply_elder_sign_success(
     result: dict[str, Any],
     rng: ArkhamRng | None,
 ) -> None:
-    if result.get("token") != "eldersign" or not result.get("success"):
+    if not revealed_symbol(result, {"eldersign"}) or not result.get("success"):
         return
     if player_cards.investigator_text_blank(state):
         return
     if state.investigator.card_code == "01002":
-        count = player_cards.controlled_tome_count(state)
-        for _ in range(count):
-            draw_player_card(state, events, rng)
+        requested = player_cards.controlled_tome_count(state)
+        count = sum(
+            draw_player_card(state, events, rng, log_draw=False) is not None
+            for _ in range(requested)
+        )
         if count:
             log_event(events, "elder_sign", f"Daisy drew {count} card from her elder sign.", amount=count)
     elif state.investigator.card_code == "01003":
@@ -1288,7 +1308,6 @@ def discard_obscuring_fog_at_roland(state: GameState, events: list[dict[str, Any
     for attachment in list(location.attached_instance_ids):
         if state.card_instances[attachment].card_code == "01168":
             discard_location_attachment(state, events, attachment)
-            log_event(events, "obscuring_fog_discarded", "Obscuring Fog was discarded after a successful investigation.", card=attachment)
             return
 
 

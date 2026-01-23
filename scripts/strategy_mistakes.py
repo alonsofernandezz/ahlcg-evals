@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Detect general-strategy mistakes in run dirs — the "new player errors" lens.
 
-Detectors (Clyde's examples from hy3-b2 game-01, 2026-07-08):
+Detectors (examples from hy3-b2 game-01, 2026-07-08):
   aoo        — attacks of opportunity provoked (enemy_attack source field)
   handlimit  — forced discards to hand size at upkeep (kept 8+ cards)
   lastdraw   — spent the FINAL action of a turn on the basic draw action

@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": {
     "01004": {
       "clues": null,
@@ -1147,7 +1147,7 @@
       "name": "Agnes Baker"
     },
     "name": "show-terra-agnes-1-gathering",
-    "run_dir": "/Users/clyde/ahlcg/campaigns/show-terra-agnes/runs/c-show-terra-agnes-1",
+    "run_dir": "./campaigns/show-terra-agnes/runs/c-show-terra-agnes-1",
     "scenario": "return_to_the_gathering",
     "scenario_card": "01104",
     "seed": 940401

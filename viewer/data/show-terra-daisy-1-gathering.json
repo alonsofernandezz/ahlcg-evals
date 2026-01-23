@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": {
     "01002": {
       "clues": null,
@@ -823,7 +823,7 @@
       "name": "Daisy Walker"
     },
     "name": "show-terra-daisy-1-gathering",
-    "run_dir": "/Users/clyde/ahlcg/campaigns/show-terra-daisy/runs/c-show-terra-daisy-1",
+    "run_dir": "./campaigns/show-terra-daisy/runs/c-show-terra-daisy-1",
     "scenario": "return_to_the_gathering",
     "scenario_card": "01104",
     "seed": 940201

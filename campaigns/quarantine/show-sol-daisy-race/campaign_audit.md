@@ -1,4 +1,4 @@
-All checks are complete. Here is the campaign-layer audit report.
+﻿All checks are complete. Here is the campaign-layer audit report.
 
 ---
 
@@ -10,7 +10,7 @@ All checks are complete. Here is the campaign-layer audit report.
 
 **Evidence:**
 
-- `campaign.json` scenario 2 entry points at `/Users/clyde/ahlcg/campaigns/show-luna-daisy/runs/c-show-luna-daisy-2` — a different campaign directory — even though this campaign's own completed run exists at `campaigns/show-sol-daisy/runs/c-show-sol-daisy-2` (status "ended", full result.json, never ingested anywhere).
+- `campaign.json` scenario 2 entry points at `./campaigns/show-luna-daisy/runs/c-show-luna-daisy-2` — a different campaign directory — even though this campaign's own completed run exists at `campaigns/show-sol-daisy/runs/c-show-sol-daisy-2` (status "ended", full result.json, never ingested anywhere).
 - The two runs are seed-matched (both seed 940202) but are different games with different outcomes. Sol's own run: Daisy **resigned** R4, score 1, VP 1, XP 1, `trauma: {}`. Luna's run: Daisy **defeated**, score 0, VP 1, XP 1, trauma +1 physical. The campaign recorded luna's values (`score: 0`, `trauma_delta: {physical: 1}`).
 - Provenance is unambiguous: sol's run-2 `meta.json` names `deck: .../show-sol-daisy/decks/deck-2.json`; luna's names luna's deck-2 (the two lanes' decks differ — different deckbuild swaps).
 - The contamination propagated into play: run-3 `meta.json` shows trauma `physical: 2` entering the Devourer Below, and the run-3 transcript opens at `dmg2/5`. The true carry-in from this lane's own games is 1 physical (scenario 1 only).

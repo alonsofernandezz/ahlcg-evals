@@ -1,4 +1,4 @@
-{
+﻿{
   "cards": {
     "01001": {
       "clues": null,
@@ -580,7 +580,7 @@
       "name": "Roland Banks"
     },
     "name": "show-terra-skids-3-devourer",
-    "run_dir": "/Users/clyde/ahlcg/campaigns/show-terra-skids/runs/c-show-terra-skids-3",
+    "run_dir": "./campaigns/show-terra-skids/runs/c-show-terra-skids-3",
     "scenario": "return_to_the_devourer_below",
     "scenario_card": null,
     "seed": 940303

@@ -1,10 +1,10 @@
-All evidence is in hand. The audit is complete — every dimension checks out except one major data-integrity issue at the scenario-1 boundary.
+﻿All evidence is in hand. The audit is complete — every dimension checks out except one major data-integrity issue at the scenario-1 boundary.
 
 ## Finding 1 — Scenario 1 is recorded from a different campaign's run (cross-lane contamination; ledger-108 residue never repaired in data)
 
 **Campaign step:** scenario 1 record (`campaigns/show-terra-roland/campaign.json`, scenarios[0])
 
-**What the record says:** Terra-roland's scenario 1 (`return_to_the_gathering`, no_resolution, XP 2, +2 mental trauma) points at `run: /Users/clyde/ahlcg/campaigns/show-sol-roland/runs/c-show-sol-roland-1` — a run directory belonging to the **show-sol-roland** campaign.
+**What the record says:** Terra-roland's scenario 1 (`return_to_the_gathering`, no_resolution, XP 2, +2 mental trauma) points at `run: ./campaigns/show-sol-roland/runs/c-show-sol-roland-1` — a run directory belonging to the **show-sol-roland** campaign.
 
 **Evidence that the recorded game is genuinely sol's, not terra's:**
 - Terra's own run dir `runs/c-show-terra-roland-1` exists but has **no result.json**; its state.json is `in_progress`, Round 4, mid-skill-test (Investigate Bathroom, commit-cards decision pending). The game was abandoned, never completed, never recorded.

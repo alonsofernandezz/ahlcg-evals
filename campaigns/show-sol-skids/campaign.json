@@ -1,4 +1,4 @@
-{
+﻿{
   "campaign": "return_to_night_of_the_zealot",
   "chaos_bag_additions": [
     "elderthing"
@@ -110,7 +110,7 @@
   "scenarios": [
     {
       "resolution": "R1",
-      "run": "/Users/clyde/ahlcg/campaigns/show-sol-skids/runs/c-show-sol-skids-1",
+      "run": "./campaigns/show-sol-skids/runs/c-show-sol-skids-1",
       "scenario": "return_to_the_gathering",
       "score": 4,
       "status": "complete",
@@ -122,7 +122,7 @@
     },
     {
       "resolution": "R1",
-      "run": "/Users/clyde/ahlcg/campaigns/show-sol-skids/runs/c-show-sol-skids-2",
+      "run": "./campaigns/show-sol-skids/runs/c-show-sol-skids-2",
       "scenario": "return_to_the_midnight_masks",
       "score": 0,
       "status": "complete",
@@ -134,7 +134,7 @@
     },
     {
       "resolution": "no_resolution",
-      "run": "/Users/clyde/ahlcg/campaigns/show-sol-skids/runs/c-show-sol-skids-3",
+      "run": "./campaigns/show-sol-skids/runs/c-show-sol-skids-3",
       "scenario": "return_to_the_devourer_below",
       "score": 0,
       "status": "complete",
