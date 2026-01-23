@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01003": {
       "clues": null,
@@ -1174,7 +1174,7 @@
       "name": "\"Skids\" O'Toole"
     },
     "name": "show-terra-skids-1-gathering",
-    "run_dir": "./campaigns/show-terra-skids/runs/c-show-terra-skids-1",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-terra-skids/runs/c-show-terra-skids-1",
     "scenario": "return_to_the_gathering",
     "scenario_card": "01104",
     "seed": 940301

@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01004": {
       "clues": null,
@@ -634,7 +634,7 @@
       "name": "Agnes Baker"
     },
     "name": "show-hy3-agnes-3-devourer",
-    "run_dir": "./campaigns/show-hy3-agnes/runs/c-show-hy3-agnes-3",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-hy3-agnes/runs/c-show-hy3-agnes-3",
     "scenario": "return_to_the_devourer_below",
     "scenario_card": null,
     "seed": 930403

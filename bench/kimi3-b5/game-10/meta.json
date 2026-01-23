@@ -1,6 +1,6 @@
-﻿{
+{
   "created_at": "2026-07-17T04:02:34+00:00",
-  "deck": "./data/decks/killbray/wendy.json",
+  "deck": "/Users/clyde/ahlcg/data/decks/killbray/wendy.json",
   "difficulty": "standard",
   "engine_version": "0.1.0-phase-a",
   "hidden_sha256": "37dc237400efae48694f4bda3632ab703cb66a5c4f24097fe668492eeac56a82",
@@ -9,7 +9,7 @@
     "id": "wendy",
     "name": "Wendy Adams"
   },
-  "notebook": "./bench/kimi3-b5/notebook.md",
+  "notebook": "/Users/clyde/ahlcg/bench/kimi3-b5/notebook.md",
   "scenario": "return_to_the_gathering",
   "seed": 1010,
   "status": "ended",

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -101,10 +101,6 @@ h2{font-size:clamp(22px,3.4vw,32px); font-weight:400; margin:8px 0 6px}
 .pbar{height:12px; background:var(--panel2); border:1px solid var(--line); border-radius:3px; overflow:hidden}
 .pfill{height:100%; background:var(--spectral)}
 .pnum{font-family:var(--mono); font-size:13px; color:var(--muted); text-align:right}
-.scatter{margin-top:26px; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:18px 12px 8px}
-.scatter svg text{font-family:var(--mono)}
-.scatter .dot{cursor:default}
-.scatter .dot:hover circle{stroke:var(--ink); stroke-width:2}
 .vignettes{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:34px}
 @media (max-width:760px){.vignettes{grid-template-columns:1fr}}
 .vig{background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--doom); border-radius:6px; padding:22px 24px}
@@ -129,105 +125,17 @@ footer .wrap{max-width:72ch; margin:0}
   <h1>Findings <span class="thin">from the investigation</span></h1>
   <p class="dek">Coding agents play <b>Arkham Horror: The Card Game</b> solo, inside a
   rules-enforcing engine, with a persistent notebook as their only memory between games.
-  Three questions under investigation: <b>can models play</b> — and if so, how well?
-  <b>Can they learn</b> from repeated play — and if so, how well? And <b>can they
-  playtest</b> — find real rules bugs in the engine that hosts them — and if so, how
-  well? Every score on this page is a link into the full replay.</p>
+  Two questions under investigation: <b>do models actually learn from repeated play</b>,
+  and <b>can they playtest</b> — find real rules bugs in the engine that hosts them?
+  Every score on this page is a link into the full replay.</p>
   <nav>
     <a href="index.html">→ open the run viewer</a>
-    <a href="https://github.com/arkhambench/arkhambench">→ repository &amp; methodology</a>
+    <a href="https://github.com/clydeiii/arkhambench">→ repository &amp; methodology</a>
   </nav>
 </header>
 
 <section id="board">
-  <div class="exhibit">Question 1 · Can they play? — Exhibit 0</div>
-  <h2>Yes — this well</h2>
-  <p class="note">The current standings. Nine leading AI models each played five complete
-  <b>campaigns</b> — a campaign is a linked three-game story where the same character's
-  deck, injuries, and experience carry forward, and dying early in game one haunts you in
-  game three. Every model faced identical card shuffles, so differences are down to play,
-  not luck. Each bar is one campaign, in the order played — click a bar to replay that
-  campaign decision by decision. Cost is what the model's API usage would bill at
-  July-2026 prices (<span title="actual billed cost">*</span>&nbsp;= actual billing).</p>
-  <div class="board" id="w7-board"></div>
-  <div class="legend">bar height = campaign score<i style="background:var(--gold)"></i>includes a won scenario
-    <i style="background:#3a2c2a"></i>scoreless<i style="background:var(--line)"></i>scored
-    · hover a bar for the exact score</div>
-  <h2 style="margin-top:44px">Score, price, and speed</h2>
-  <p class="note">The same full benchmarking run, with everything measured: how well each
-  model played, what its API usage would cost, and how long it took. Claude Opus 5,
-  benchmarked the day it launched, rewrote the board — 35 points and seven outright
-  scenario wins, nearly double the previous best. Before it landed, OpenAI's GPT-5.6
-  family held the top three spots, with the budget tiers delivering by far the most
-  points per dollar. One honest note on the meters: every model here moved a similar
-  mountain of tokens (tens of millions, 95–99% of them cheap cached re-reads) — what
-  separates a $15 run from a $195 run is mostly the price of the model itself. Score
-  climbs the y-axis; cost and time run right-to-left — the models you want are up and
-  to the right.</p>
-  <div class="scatter" id="scatter-cost"></div>
-  <div class="scatter" id="scatter-time"></div>
-</section>
-
-<section id="learn">
-  <div class="exhibit">Question 2 · Can they learn? — Exhibit 0.5</div>
-  <h2>Not measurably — and experience isn't cheap</h2>
-  <p class="note">The learning bench: each model played the <b>same scenario thirty times
-  over</b>, starting from a blank notebook — the only memory carried between games. Same
-  thirty card shuffles for everyone. If models genuinely learned, late games would beat
-  early ones. They don't: every trend line is flat — the best and worst slopes across
-  the board amount to about one point of drift over all thirty games, on a 0–9 scale.
-  Skill shows up in game one or not at all. And because each game's notes make the next
-  game's reading list longer, <b>per-game cost went up, not down</b>, for most models —
-  experience literally made the games more expensive. Each bar is one game; click any bar
-  to replay it. One exception to the flat-curve rule emerged when the last three models
-  finished: Hunyuan 3 — the cheapest model on the board at $9 for all thirty games —
-  posted the steepest climb and the strongest final stretch of any model. One model at
-  thirty games is a signal, not a proof. But it is the closest thing to genuine learning
-  this benchmark has measured.</p>
-  <div class="board" id="b6-board"></div>
-  <div class="legend">bar height = game score 0–9<i style="background:var(--gold)"></i>win
-    <i style="background:#3a2c2a"></i>scoreless<i style="background:var(--line)"></i>scored
-    · hover a bar for game and score · number is the 30-game average (small: last-6-game average)</div>
-
-  <div class="exhibit" style="margin-top:44px">Question 2 · follow-up — the persistent-memory test</div>
-  <h2>Would a real memory help? We gave two models one — it didn't</h2>
-  <p class="note">A fair objection to the flat curves above: maybe the models never learned
-  because we kept wiping their memory. Between games, everything except the notebook is
-  erased — and OpenAI showed on a different benchmark (ARC-AGI-3) that exactly this kind of
-  memory-wiping harness was <a href="https://openai.com/index/how-two-settings-tripled-our-arc-agi-3-scores/">holding
-  its model back</a>: letting the model keep its private reasoning and summarizing old
-  history instead of deleting it <b>tripled</b> its score. So we reran the thirty games for
-  two models with those settings on. Each model played all thirty games in <b>one continuous
-  session</b> — never reset, automatically summarized whenever it grew too long, notebook
-  still available. The chain never broke once. The result: <b>no tripling — both models
-  scored slightly <i>worse</i></b> (comparing the same thirty shuffles head-to-head, the
-  fresh-session run won more games than it lost for both models), and the learning curves
-  stayed flat. The flat-curve finding is about the models, not the harness. Two side
-  effects were real, though. Per-game cost <b>stopped climbing</b> — summaries keep the
-  reading list bounded, where in the main bench each game's notes made the next game more
-  expensive (though the Claude lane's total bill still came out 70% higher, because
-  re-reading a month-long conversation every move costs real money even at cache rates).
-  And Fable changed personality: with a permanent memory of every close call, it settled
-  into a cautious farm-points-and-retreat routine and stopped playing for wins — 2 wins in
-  thirty games versus 13 with fresh eyes. Both models also nearly stopped writing notebooks
-  (70 and 91 lines versus 232 and 503 first time around) — they leaned on the session and
-  wrote less down.</p>
-  <div class="board" id="b7-board"></div>
-  <div class="legend">same encoding as the board above · big number is the 30-game average
-    (small: the same model's fresh-session average) · click any bar to replay that game</div>
-</section>
-
-<section id="archive">
-  <div class="exhibit">Archive — earlier engine eras</div>
-  <h2>The historical record</h2>
-  <p class="note">Everything below ran on <b>older versions of the engine</b>. The playtest
-  program (Exhibit 1) confirmed and fixed 60+ rules defects across those eras — most of them
-  quietly pro-player — so scores from different eras are not fairly comparable to the
-  leaderboard above, or to each other across waves. The exhibits are preserved as the
-  record of how the benchmark, and the engine, got here.</p>
-  <details>
-  <summary style="cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--spectral);margin-top:18px">open the archive: the 10-game gauntlets, wave cards, and learning experiments</summary>
-  <div class="exhibit" style="margin-top:26px">Archived · Exhibit A</div>
+  <div class="exhibit">Exhibit A</div>
   <h2>The Board</h2>
   <p class="note">Every model, ten games, identical seeds and investigator rotation.
   The headline number is the <b>final-20% average</b> — games 9 and 10, after eight games
@@ -236,20 +144,21 @@ footer .wrap{max-width:72ch; margin:0}
   <div class="board" id="board-rows"></div>
   <div class="legend">bar height = score 0–9<i style="background:var(--gold)"></i>win
     <i style="background:#3a2c2a"></i>scoreless<i style="background:var(--line)"></i>scored, no win
-    · hover a bar for game number · engine versions differ across waves (see archived Exhibit B)</div>
+    · hover a bar for game number · engine versions differ across waves (see Exhibit B)</div>
+</section>
 
-<div id="waves">
-  <div class="exhibit" style="margin-top:44px">Archived · Exhibit B</div>
+<section id="waves">
+  <div class="exhibit">Exhibit B</div>
   <h2>Three gauntlets, one scenario</h2>
   <p class="note">The same ten-game gauntlet ran three times as models became available.
-  Each wave played a progressively harder-to-cheat engine — the playtest program (Exhibit 1)
+  Each wave played a progressively harder-to-cheat engine — the playtest program (Exhibit D)
   fixed rules bugs between waves, most of which had been quietly pro-player — so cross-wave
   comparison is indicative, not controlled.</p>
   <div id="wave-cards"></div>
-</div>
+</section>
 
-<div id="learning">
-  <div class="exhibit" style="margin-top:44px">Archived · Exhibit C</div>
+<section id="learning">
+  <div class="exhibit">Exhibit C</div>
   <h2>Do they learn?</h2>
   <div class="duo">
     <div class="panelbox">
@@ -271,34 +180,20 @@ footer .wrap{max-width:72ch; margin:0}
       <p class="campnote" id="camp-note"></p>
     </div>
   </div>
-</div>
-  </details>
 </section>
 
 <section id="playtest">
-  <div class="exhibit">Question 3 · Can they playtest? — Exhibit 1</div>
-  <h2>Yes — and the engine is better for it</h2>
-  <p class="note">Every model is told that finding a genuine rules bug in the game engine
-  is worth more than any score — so every player is also a playtester. Their reports are
-  checked the way a court checks testimony: other models audit the game records, dedicated
-  verifiers try to knock each claim down against the printed cards, and a final judge
-  rules on what's real. That judge has reversed rulings in every direction — including
-  its own — eight times.</p>
-  <p class="note"><b>Wave 6 put a new model in the judge's chair.</b> On its release week,
-  Kimi K3 audited all sixty artifacts of a fresh fifteen-campaign wave — every scenario
-  transcript and every campaign ledger. It filed forty findings: twenty-three confirmed
-  (twenty-two distinct defects, including two exploits and three material-outcome bugs that
-  had survived five prior audit waves), seventeen refuted. Six of the refutations were the
-  transcript's fault, not the judge's — each became an adopted logging improvement — and a
-  Sol counter-audit of six K3-cleared games corroborated five, catching one missed
-  display-severity defect. Lower precision than Sol, more confirmed defects than any
-  auditor before it.</p>
+  <div class="exhibit">Exhibit D</div>
+  <h2>The second benchmark: can models playtest?</h2>
+  <p class="note">Agents are told verified engine-bug reports outrank score — every adversary
+  becomes an auditor. Reports flow through a tiered pipeline: cheap models play, strong models
+  audit the transcripts, adversarial verification and a final human-tier gate adjudicate.
+  The gate reversed rulings in every direction, including its own, seven times.</p>
   <div class="counters" id="counters"></div>
   <div class="precision" id="precision">
     <p class="note" style="margin-bottom:6px"><b>Auditor precision</b> — confirmed defects
-    per claim. Playing strength and auditing strength are different skills; the most precise
-    auditor confirmed eighteen of twenty-one claims, the most prolific confirmed twenty-three
-    of forty, and the weakest filed seventy claims for three.</p>
+    per claim. Playing strength and auditing strength are different skills; the strongest
+    auditor found eighteen real defects in one wave, the weakest filed seventy claims for three.</p>
   </div>
   <div class="vignettes" id="vignettes"></div>
 </section>
@@ -308,7 +203,7 @@ footer .wrap{max-width:72ch; margin:0}
     <p><b>Method.</b> Score = max(0, XP − trauma) per the campaign guide. Benchmarks use
     identical seeds (1001–1010) and an interleaved five-investigator rotation; each agent's
     persistent notebook starts empty and is its only cross-game memory. Full adjudication
-    record: <a href="https://github.com/arkhambench/arkhambench/blob/main/specs/bug_adjudications.md">specs/bug_adjudications.md</a>.
+    record: <a href="https://github.com/clydeiii/arkhambench/blob/main/specs/bug_adjudications.md">specs/bug_adjudications.md</a>.
     Card data © Fantasy Flight Games via arkhamdb-json-data; this is AI-capabilities
     research and commentary.</p>
   </div>
@@ -320,128 +215,6 @@ const REGION = {US:"US", CN:"CN"};
 const px = s => Math.max(4, Math.round(s / 9 * 34));
 
 fetch("data/results.json").then(r => r.json()).then(data => {
-  // ---- Exhibit 0: wave-7 leaderboard ----
-  const w7board = document.getElementById("w7-board");
-  const w7camps = new Map();  // prefix -> campaign rows (ordered as played)
-  for (const grp of data.campaigns || [])
-    for (const c of grp.campaigns || [])
-      for (const row of (data.wave7 || []))
-        if (c.name.startsWith(row.prefix)) {
-          if (!w7camps.has(row.prefix)) w7camps.set(row.prefix, []);
-          w7camps.get(row.prefix).push(c);
-        }
-  const w7max = Math.max(...(data.wave7 || []).flatMap(r => (w7camps.get(r.prefix) || []).map(c => c.score)), 1);
-  (data.wave7 || []).forEach((r, i) => {
-    const camps = (w7camps.get(r.prefix) || []).slice().sort((a, b) => a.order - b.order);
-    const pips = camps.map(c => {
-      const win = c.legs.some(l => String(l.resolution || "").startsWith("R") && l.resolution !== "R3");
-      const cls = "pip" + (win ? " win" : c.score === 0 ? " zero" : " scored");
-      const h = 6 + Math.round(28 * c.score / w7max);
-      const slug = c.legs.length ? c.legs[0].slug : "";
-      return `<a class="${cls}" style="height:${h}px" title="${c.investigator} · ${c.score}"
-        href="index.html#run=${slug}&step=0"><span>${c.score}</span></a>`;
-    }).join("");
-    const div = document.createElement("div");
-    div.className = "brow" + (i === 0 ? " first" : "");
-    div.innerHTML = `
-      <div class="rank">${i + 1}</div>
-      <div class="mname">${r.name}<span class="tag">${r.harness} · ${r.thinking} · $${r.cost.toFixed(0)}${r.measured ? "*" : ""} · ${r.hours}h</span></div>
-      <div class="f20">${r.score}</div>
-      <div class="pips">${pips}</div>`;
-    w7board.appendChild(div);
-  });
-
-  // ---- Exhibit 0: native scatters (score on y; cost/time reversed on x) ----
-  const W7C = {opus5:"#d8a54a", sol:"#c65f57", terra:"#74d8a4", luna:"#4aa877",
-               fable:"#9a7fd1", opus:"#5b8fd6", sonnet:"#c9a24a", k3:"#d07a3a", hy3:"#8a958c"};
-  function renderScatter(elId, rows, opts) {
-    const el = document.getElementById(elId);
-    if (!el || !rows.length) return;
-    const W = Math.min(el.clientWidth || 900, 980), H = 440;
-    const L = 54, R = 26, T = 40, B = 58;
-    const pw = W - L - R, ph = H - T - B;
-    const xs = rows.map(opts.x), ys = rows.map(r => r.score);
-    const yHi = Math.max(...ys) * 1.18;
-    let xLo, xHi, fx;
-    if (opts.log) {
-      xLo = Math.min(...xs) * 0.6; xHi = Math.max(...xs) * 1.8;
-      fx = v => L + (1 - (Math.log10(v) - Math.log10(xLo)) / (Math.log10(xHi) - Math.log10(xLo))) * pw;
-    } else {
-      xLo = 0; xHi = Math.max(...xs) * 1.15;
-      fx = v => L + (1 - (v - xLo) / (xHi - xLo)) * pw;
-    }
-    const fy = v => T + ph - v / yHi * ph;
-    let g = "";
-    for (let gy = 0; gy <= yHi; gy += 5) {
-      g += `<line x1="${L}" y1="${fy(gy)}" x2="${L+pw}" y2="${fy(gy)}" stroke="var(--line)"/>`
-         + `<text x="${L-8}" y="${fy(gy)+4}" font-size="11" text-anchor="end" fill="var(--muted)">${gy}</text>`;
-    }
-    const ticks = opts.log ? [0.5,1,2,5,10,20,50,100,200].filter(t => t >= xLo && t <= xHi)
-                           : Array.from({length: 8}, (_, i) => Math.round(xHi / 7 * i)).filter(t => t > 0);
-    for (const t of ticks) {
-      g += `<line x1="${fx(t)}" y1="${T}" x2="${fx(t)}" y2="${T+ph}" stroke="var(--line)" opacity="0.6"/>`
-         + `<text x="${fx(t)}" y="${T+ph+18}" font-size="11" text-anchor="middle" fill="var(--muted)">${opts.fmt(t)}</text>`;
-    }
-    g += `<text x="${L+pw/2}" y="${H-12}" font-size="12" text-anchor="middle" fill="var(--muted)">${opts.label}</text>`;
-    g += `<text x="${L+pw-4}" y="${T+14}" font-size="11" text-anchor="end" fill="var(--spectral)">\u2197 up and to the right is better</text>`;
-    const placed = [];
-    for (const r of rows.slice().sort((a, b) => fx(opts.x(a)) - fx(opts.x(b)))) {
-      const cx = fx(opts.x(r)), cy = fy(r.score), col = W7C[r.lane] || "var(--muted)";
-      const anchor = cx < L + pw * 0.75 ? "start" : "end";
-      let lx = cx + (anchor === "start" ? 11 : -11), ly = cy + 4;
-      for (const [px, py] of placed)
-        if (Math.abs(lx - px) < 120 && Math.abs(ly - py) < 15) ly = py + 16;
-      placed.push([lx, ly]);
-      g += `<g class="dot"><title>${r.name} \u00b7 ${r.score} pts \u00b7 $${r.cost}${r.measured ? "*" : ""} \u00b7 ${r.hours}h</title>`
-         + `<circle cx="${cx}" cy="${cy}" r="7" fill="${col}" opacity="0.9"/>`
-         + `<text x="${lx}" y="${ly}" font-size="12.5" font-weight="bold" fill="${col}" text-anchor="${anchor}">${r.name}</text></g>`;
-    }
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img">${g}</svg>`;
-  }
-  renderScatter("scatter-cost", data.wave7 || [], {
-    x: r => r.cost, log: true, fmt: t => "$" + t,
-    label: "API-equivalent cost for all 5 campaigns (USD, log scale) \u2014 cheaper \u2192"});
-  renderScatter("scatter-time", data.wave7 || [], {
-    x: r => r.hours, log: false, fmt: t => t + "h",
-    label: "wall-clock time for all 5 campaigns \u2014 faster \u2192"});
-
-  // ---- Exhibit 0.5: b6 learning bench board ----
-  const b6b = document.getElementById("b6-board");
-  (data.b6 || []).forEach((r, i) => {
-    const pips = r.games.map(g => {
-      const cls = "pip" + (g.win ? " win" : g.score === 0 ? " zero" : " scored");
-      return `<a class="${cls}" style="height:${6 + Math.round(3.2 * g.score)}px" title="game ${g.n} \u00b7 ${g.investigator} \u00b7 ${g.score}${g.win ? " \u00b7 WIN" : ""}"
-        href="index.html#run=${g.slug}&step=0"><span>${g.n}</span></a>`;
-    }).join("");
-    const div = document.createElement("div");
-    div.className = "brow" + (i === 0 ? " first" : "");
-    div.innerHTML = `
-      <div class="rank">${i + 1}</div>
-      <div class="mname">${r.name}<span class="tag">${r.harness} \u00b7 ${r.thinking} \u00b7 $${Math.round(r.cost)} \u00b7 ${r.hours}h \u00b7 slope ${r.slope >= 0 ? "+" : ""}${r.slope}</span></div>
-      <div class="f20">${r.mean.toFixed(2)}<div style="font-size:11px;color:var(--muted)">${r.f20.toFixed(2)}</div></div>
-      <div class="pips">${pips}</div>`;
-    b6b.appendChild(div);
-  });
-
-  // ---- Q2 follow-up: b7 retained-session arm ----
-  const b7b = document.getElementById("b7-board");
-  (data.b7 || []).forEach((r, i) => {
-    const pips = r.games.map(g => {
-      const cls = "pip" + (g.win ? " win" : g.score === 0 ? " zero" : " scored");
-      return `<a class="${cls}" style="height:${6 + Math.round(3.2 * g.score)}px" title="game ${g.n} · ${g.investigator} · ${g.score}${g.win ? " · WIN" : ""}"
-        href="index.html#run=${g.slug}&step=0"><span>${g.n}</span></a>`;
-    }).join("");
-    const div = document.createElement("div");
-    div.className = "brow";
-    const base = r.baseline;
-    div.innerHTML = `
-      <div class="rank">↔</div>
-      <div class="mname">${r.name}<span class="tag">retained session · ${r.harness} · $${Math.round(r.cost)} · ${r.hours}h · slope ${r.slope >= 0 ? "+" : ""}${r.slope}</span></div>
-      <div class="f20">${r.mean.toFixed(2)}<div style="font-size:11px;color:var(--muted)">${base ? base.mean.toFixed(2) + " fresh" : ""}</div></div>
-      <div class="pips">${pips}</div>`;
-    b7b.appendChild(div);
-  });
-
   // ---- Exhibit A: combined board ----
   const rows = [];
   for (const wave of data.waves)

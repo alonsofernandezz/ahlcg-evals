@@ -1,4 +1,4 @@
-﻿{
+{
   "campaign": "return_to_night_of_the_zealot",
   "campaign_score": 3,
   "investigator": "wendy",
@@ -14,7 +14,7 @@
   "scenarios": [
     {
       "resolution": "no_resolution",
-      "run": "./campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-1",
+      "run": "/Users/clyde/ahlcg/campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-1",
       "scenario": "return_to_the_gathering",
       "score": 3,
       "status": "complete",
@@ -26,7 +26,7 @@
     },
     {
       "resolution": "R1",
-      "run": "./campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-2",
+      "run": "/Users/clyde/ahlcg/campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-2",
       "scenario": "return_to_the_midnight_masks",
       "score": 0,
       "status": "complete",
@@ -38,7 +38,7 @@
     },
     {
       "resolution": "no_resolution",
-      "run": "./campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-3",
+      "run": "/Users/clyde/ahlcg/campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-3",
       "scenario": "return_to_the_devourer_below",
       "score": 0,
       "status": "complete",

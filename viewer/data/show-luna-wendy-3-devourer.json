@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01005": {
       "clues": null,
@@ -607,7 +607,7 @@
       "name": "Wendy Adams"
     },
     "name": "show-luna-wendy-3-devourer",
-    "run_dir": "./campaigns/show-luna-wendy/runs/c-show-luna-wendy-3",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-luna-wendy/runs/c-show-luna-wendy-3",
     "scenario": "return_to_the_devourer_below",
     "scenario_card": null,
     "seed": 940503

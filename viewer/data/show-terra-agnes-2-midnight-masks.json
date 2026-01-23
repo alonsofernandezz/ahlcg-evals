@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01004": {
       "clues": null,
@@ -985,7 +985,7 @@
       "name": "Agnes Baker"
     },
     "name": "show-terra-agnes-2-midnight-masks",
-    "run_dir": "./campaigns/show-terra-agnes/runs/c-show-terra-agnes-2",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-terra-agnes/runs/c-show-terra-agnes-2",
     "scenario": "return_to_the_midnight_masks",
     "scenario_card": null,
     "seed": 940402

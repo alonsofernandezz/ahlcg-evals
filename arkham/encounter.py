@@ -37,25 +37,18 @@ def resolve_after_encounter_draw(state: GameState, events: list[dict[str, Any]])
     if pending.get("kind") == "drawn_to_the_flame":
         from .effects import discover_clue
 
-        amount = min(2, state.locations[state.investigator.location_id].clues)
-        discover_clue(
-            state,
-            2,
-            events,
-            event_type="drawn_to_the_flame",
-            message=f"Drawn to the Flame discovered {amount} clue.",
-        )
+        discovered = discover_clue(state, 2, events)
+        if discovered > 0:
+            log_event(events, "drawn_to_the_flame", f"Drawn to the Flame discovered {discovered} clue.", amount=discovered)
 
 
 def present_revelation_cancel(state: GameState, instance_id: str) -> bool:
-    from . import actions
-
     instance = state.card_instances[instance_id]
     card = card_data.get_card(instance.card_code)
     if card.get("type_code") != "treachery" or card.get("subtype_code") in {"weakness", "basicweakness"}:
         return False
     wards = player_cards.hand_ids(state, "01065")
-    if not wards or state.investigator.resources < 1 or actions.dissonant_blocks(state, "01065"):
+    if not wards or state.investigator.resources < 1:
         return False
     state.decision_queue.append(
         PendingDecision(
@@ -272,7 +265,7 @@ def locked_door_targets(state: GameState) -> list[str]:
     candidates = [
         location
         for location in state.locations.values()
-        if not encounter_cards.location_has_attachment(state, location.id, "01174")
+        if location.revealed and not encounter_cards.location_has_attachment(state, location.id, "01174")
     ]
     if not candidates:
         return []

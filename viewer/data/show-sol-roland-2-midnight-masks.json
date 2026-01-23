@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01001": {
       "clues": null,
@@ -877,7 +877,7 @@
       "name": "Roland Banks"
     },
     "name": "show-sol-roland-2-midnight-masks",
-    "run_dir": "./campaigns/show-sol-roland/runs/c-show-sol-roland-2",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-sol-roland/runs/c-show-sol-roland-2",
     "scenario": "return_to_the_midnight_masks",
     "scenario_card": null,
     "seed": 940102

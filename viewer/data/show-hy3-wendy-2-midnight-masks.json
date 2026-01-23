@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01005": {
       "clues": null,
@@ -904,7 +904,7 @@
       "name": "Wendy Adams"
     },
     "name": "show-hy3-wendy-2-midnight-masks",
-    "run_dir": "./campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-2",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-2",
     "scenario": "return_to_the_midnight_masks",
     "scenario_card": null,
     "seed": 930502

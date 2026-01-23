@@ -25,7 +25,7 @@ Design owner: Claude (planning). Implementation: codex/GPT-5.5 with Claude revie
 4. **Hidden information stays hidden.** Deck orders and RNG state live in an obfuscated
    blob. The public state file and all CLI output contain only player-legal information.
 5. **Complete, readable logs.** Every event goes to a JSONL log and a human-readable
-   markdown transcript. A reviewer must be able to read `log.md` and follow the whole game.
+   markdown transcript. Clyde must be able to read `log.md` and follow the whole game.
 6. **Scoped rules implementation, honest about scope.** We implement the AHLCG rules subset
    needed for The Gathering and Return to The Gathering with the five core investigators'
    "Better Starter Decks" (killbray, revised-core pool) — completely and correctly.

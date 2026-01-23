@@ -328,7 +328,7 @@ def reveal_location(state: GameState, events: list[dict[str, Any]], location_id:
     location.revealed = True
     location.name = location_revealed_name(location.code)
     location.shroud = int(card.get("shroud") or 0)
-    location.clues += int(card.get("clues") or 0)
+    location.clues = int(card.get("clues") or 0)
     log_event(events, "location_revealed", f"{location.name} was revealed.", location=location_id)
 
 
@@ -431,10 +431,6 @@ def resolve_scenario_choice(
         resolve_warehouse_enemy_choice(state, payload, events)
     elif choice == "on_wings_continue":
         on_wings_disengage_and_move(state, events)
-    elif choice == "on_wings_destination":
-        destination = str(payload.get("location", ""))
-        if destination in central_destinations(state):
-            move_investigator_to(state, events, destination)
     resolve_pending_mask_after_spawn(state, events, rng)
 
 
@@ -1242,9 +1238,7 @@ def attach_mask_to_enemy(
     state.enemies[enemy_id].attachments.append(mask_id)
     from ..effects import log_event
 
-    mask_name = card_data.get_card(state.card_instances[mask_id].card_code)["name"]
-    target_name = card_data.get_card(state.enemies[enemy_id].card_code)["name"]
-    log_event(events, "treachery_attached", f"{mask_name} attached to {target_name}.", card=mask_id, enemy=enemy_id)
+    log_event(events, "treachery_attached", "Mask of Umordhoth attached to a Cultist enemy.", card=mask_id, enemy=enemy_id)
     if place_doom:
         place_doom_on_enemy(state, enemy_id, 1, events, source="Mask of Umordhoth", rng=rng)
 
@@ -1648,38 +1642,8 @@ def on_wings_disengage_and_move(state: GameState, events: list[dict[str, Any]]) 
             from ..enemies import disengage_enemy
 
             disengage_enemy(state, events, enemy_id, exhaust=False)
-    destinations = central_destinations(state)
-    if len(destinations) == 1:
-        move_investigator_to(state, events, destinations[0])
-    elif len(destinations) > 1:
-        state.decision_queue.append(
-            PendingDecision(
-                id="on-wings-destination",
-                kind="scenario",
-                prompt="Choose a Central location for On Wings of Darkness.",
-                options=[
-                    DecisionOption(
-                        f"Move to {state.locations[location_id].name}",
-                        {"kind": "scenario", "choice": "on_wings_destination", "location": location_id},
-                    )
-                    for location_id in destinations
-                ],
-            )
-        )
-
-
-def central_destinations(state: GameState) -> list[str]:
-    current = state.investigator.location_id
-    return sorted(
-        location_id
-        for location_id, location in state.locations.items()
-        if location_id != current
-        and "Central"
-        in {
-            trait.strip()
-            for trait in str(card_data.get_card(location.code).get("traits", "")).split(".")
-        }
-    )
+    if state.investigator.location_id != "rivertown":
+        move_investigator_to(state, events, "rivertown")
 
 
 def move_investigator_to(state: GameState, events: list[dict[str, Any]], location_id: str) -> None:

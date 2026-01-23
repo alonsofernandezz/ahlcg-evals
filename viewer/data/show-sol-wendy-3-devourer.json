@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01005": {
       "clues": null,
@@ -796,7 +796,7 @@
       "name": "Wendy Adams"
     },
     "name": "show-sol-wendy-3-devourer",
-    "run_dir": "./campaigns/show-sol-wendy/runs/c-show-sol-wendy-3",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-sol-wendy/runs/c-show-sol-wendy-3",
     "scenario": "return_to_the_devourer_below",
     "scenario_card": null,
     "seed": 940503

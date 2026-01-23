@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01003": {
       "clues": null,
@@ -553,7 +553,7 @@
       "name": "\"Skids\" O'Toole"
     },
     "name": "show-luna-skids-1-gathering",
-    "run_dir": "./campaigns/show-luna-skids/runs/c-show-luna-skids-1",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-luna-skids/runs/c-show-luna-skids-1",
     "scenario": "return_to_the_gathering",
     "scenario_card": "01104",
     "seed": 940301

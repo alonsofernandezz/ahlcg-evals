@@ -1,4 +1,4 @@
-﻿{
+{
   "cards": {
     "01005": {
       "clues": null,
@@ -904,7 +904,7 @@
       "name": "Wendy Adams"
     },
     "name": "show-hy3-wendy-1-gathering",
-    "run_dir": "./campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-1",
+    "run_dir": "/Users/clyde/ahlcg/campaigns/show-hy3-wendy/runs/c-show-hy3-wendy-1",
     "scenario": "return_to_the_gathering",
     "scenario_card": "01104",
     "seed": 930501
