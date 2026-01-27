@@ -1,6 +1,6 @@
 # Phase C5 — campaign-start deckbuilding (free 0-XP swaps)
 
-Motivation (Clyde, 2026-07-06): agents burn scarce XP on 1-XP purchases of level-0
+Motivation (2026-07-06): agents burn scarce XP on 1-XP purchases of level-0
 cards ("sidegrading" — Fable 5 did it 17 times across 5 showcase campaigns). Real
 players build their deck before a campaign; killbray's lists are a netdeck default.
 Give agents a free deckbuilding window at CAMPAIGN START only.

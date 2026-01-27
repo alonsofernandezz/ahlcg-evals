@@ -1,6 +1,6 @@
-{
+﻿{
   "created_at": "2026-07-05T19:23:47+00:00",
-  "deck": "/Users/clyde/ahlcg/data/decks/killbray/wendy.json",
+  "deck": "./data/decks/killbray/wendy.json",
   "difficulty": "standard",
   "engine_version": "0.1.0-phase-a",
   "hidden_sha256": "681d0689b03cc00aa254b982d35098ed54b73d011cd33b13c8c073d96254c1de",
@@ -9,7 +9,7 @@
     "id": "wendy",
     "name": "Wendy Adams"
   },
-  "notebook": "/Users/clyde/ahlcg/bench/gpt55-b1/notebook.md",
+  "notebook": "./bench/gpt55-b1/notebook.md",
   "scenario": "return_to_the_gathering",
   "seed": 1005,
   "status": "ended",

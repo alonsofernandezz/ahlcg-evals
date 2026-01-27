@@ -24,7 +24,13 @@ def log_event(events: list[dict[str, Any]], event_type: str, message: str, **dat
     events.append(event)
 
 
-def draw_player_card(state: GameState, events: list[dict[str, Any]], rng: Any = None) -> str | None:
+def draw_player_card(
+    state: GameState,
+    events: list[dict[str, Any]],
+    rng: Any = None,
+    *,
+    log_draw: bool = True,
+) -> str | None:
     investigator = state.investigator
     reshuffled = False
     if not investigator.deck:
@@ -46,7 +52,8 @@ def draw_player_card(state: GameState, events: list[dict[str, Any]], rng: Any = 
     investigator.hand.append(instance_id)
     state.card_instances[instance_id].zone = "hand"
     card = card_data.get_card(state.card_instances[instance_id].card_code)
-    log_event(events, "card_drawn", f"{investigator.name} drew {card['name']}.", card=instance_id)
+    if log_draw:
+        log_event(events, "card_drawn", f"{investigator.name} drew {card['name']}.", card=instance_id)
     resolve_player_weakness_draw(state, events, instance_id)
     if reshuffled and state.status == "in_progress":
         start_damage_assignment(state, events, source="empty-deck reshuffle", damage=0, horror=1)
@@ -110,6 +117,8 @@ def resolve_player_weakness_draw(state: GameState, events: list[dict[str, Any]],
             state.investigator.hand.remove(instance_id)
         log_event(events, "weakness_revealed", "Abandoned and Alone was revealed.", card=instance_id)
         start_damage_assignment(state, events, source="Abandoned and Alone", damage=0, horror=2, direct=True)
+        if state.status != "in_progress":
+            return
         removed = list(state.investigator.discard)
         state.investigator.discard = []
         for discard_id in removed:
@@ -183,7 +192,14 @@ def gain_resource(state: GameState, amount: int, events: list[dict[str, Any]]) -
     log_event(events, "resource_gained", f"{state.investigator.name} gained {amount} resource.", amount=amount)
 
 
-def discover_clue(state: GameState, amount: int, events: list[dict[str, Any]]) -> int:
+def discover_clue(
+    state: GameState,
+    amount: int,
+    events: list[dict[str, Any]],
+    *,
+    event_type: str = "clue_discovered",
+    message: str | None = None,
+) -> int:
     if state.scenario in MIDNIGHT_MASKS_FAMILY:
         from .scenarios import the_midnight_masks
 
@@ -196,19 +212,37 @@ def discover_clue(state: GameState, amount: int, events: list[dict[str, Any]]) -
         return 0
     cover = active_cover_up(state)
     if cover is not None:
-        present_cover_up_decision(state, count, cover)
+        present_cover_up_decision(
+            state,
+            count,
+            cover,
+            event_type=event_type,
+            message=message,
+        )
         return 0
-    return actually_discover_clues(state, count, events)
+    return actually_discover_clues(state, count, events, event_type=event_type, message=message)
 
 
-def actually_discover_clues(state: GameState, count: int, events: list[dict[str, Any]]) -> int:
+def actually_discover_clues(
+    state: GameState,
+    count: int,
+    events: list[dict[str, Any]],
+    *,
+    event_type: str = "clue_discovered",
+    message: str | None = None,
+) -> int:
     location = state.locations[state.investigator.location_id]
     count = min(count, location.clues)
     if count <= 0:
         return 0
     location.clues -= count
     state.investigator.clues += count
-    log_event(events, "clue_discovered", f"{state.investigator.name} discovered {count} clue.", amount=count)
+    log_event(
+        events,
+        event_type,
+        message or f"{state.investigator.name} discovered {count} clue.",
+        amount=count,
+    )
     return count
 
 
@@ -220,8 +254,20 @@ def active_cover_up(state: GameState) -> str | None:
     return None
 
 
-def present_cover_up_decision(state: GameState, amount: int, cover: str) -> None:
+def present_cover_up_decision(
+    state: GameState,
+    amount: int,
+    cover: str,
+    *,
+    event_type: str = "clue_discovered",
+    message: str | None = None,
+) -> None:
     remove = min(amount, state.card_instances[cover].clues)
+    discovery_log = (
+        {"event_type": event_type, "message": message}
+        if event_type != "clue_discovered" or message is not None
+        else {}
+    )
     state.decision_queue = [
         PendingDecision(
             id="cover-up-reaction",
@@ -230,11 +276,23 @@ def present_cover_up_decision(state: GameState, amount: int, cover: str) -> None
             options=[
                 DecisionOption(
                     f"Discard {remove} clue from Cover Up instead",
-                    {"kind": "cover_up_choice", "choice": "redirect", "amount": amount, "cover": cover},
+                    {
+                        "kind": "cover_up_choice",
+                        "choice": "redirect",
+                        "amount": amount,
+                        "cover": cover,
+                        **discovery_log,
+                    },
                 ),
                 DecisionOption(
                     f"Discover {amount} clue",
-                    {"kind": "cover_up_choice", "choice": "discover", "amount": amount, "cover": cover},
+                    {
+                        "kind": "cover_up_choice",
+                        "choice": "discover",
+                        "amount": amount,
+                        "cover": cover,
+                        **discovery_log,
+                    },
                 ),
             ],
         )
@@ -260,7 +318,13 @@ def resolve_cover_up_choice(state: GameState, payload: dict[str, Any], events: l
             player_cards.discard_from_threat(state, cover)
             log_event(events, "card_discarded", "Cover Up was discarded.", card=cover)
     else:
-        actually_discover_clues(state, amount, events)
+        actually_discover_clues(
+            state,
+            amount,
+            events,
+            event_type=str(payload.get("event_type", "clue_discovered")),
+            message=str(payload["message"]) if payload.get("message") else None,
+        )
 
 
 def spend_clues(state: GameState, amount: int, events: list[dict[str, Any]]) -> bool:
@@ -405,25 +469,7 @@ def start_damage_assignment(
 ) -> None:
     if damage <= 0 and horror <= 0:
         return
-    allies = legal_soak_targets(state) if not direct else []
-    if not allies:
-        state.investigator.damage += damage
-        state.investigator.horror += horror
-        log_event(events, "damage_assigned", f"{state.investigator.name} took {damage} damage and {horror} horror.", source=source)
-        check_investigator_defeat(state, events)
-        if state.decision_queue:
-            return
-        if state.status == "in_progress":
-            resolve_damage_horror_forced_weaknesses(state, events, damage=damage, horror=horror)
-        if state.status == "in_progress" and horror > 0:
-            present_after_horror_reaction(state, events)
-        if state.status == "in_progress" and resume:
-            if state.decision_queue:
-                state.limits["deferred_resume"] = dict(resume)
-            else:
-                resolve_damage_resume(state, events, resume, rng=rng)
-        return
-    state.pending_damage = {
+    assignment = {
         "source": source,
         "remaining_damage": damage,
         "remaining_horror": horror,
@@ -432,8 +478,116 @@ def start_damage_assignment(
         "assigned": [],
     }
     if resume and resume.get("kind") == "after_attack":
-        state.pending_damage["attack_enemy_id"] = resume.get("enemy")
+        assignment["attack_enemy_id"] = resume.get("enemy")
+    if state.pending_damage is not None:
+        state.pending_damage.setdefault("queue", []).append(assignment)
+        return
+    begin_damage_assignment(state, events, assignment, rng=rng)
+
+
+def begin_damage_assignment(
+    state: GameState,
+    events: list[dict[str, Any]],
+    assignment: dict[str, Any],
+    *,
+    rng: Any = None,
+) -> None:
+    damage = int(assignment.get("remaining_damage", 0))
+    horror = int(assignment.get("remaining_horror", 0))
+    direct = bool(assignment.get("direct"))
+    allies = legal_soak_targets(state) if not direct else []
+    if not allies:
+        state.investigator.damage += damage
+        state.investigator.horror += horror
+        log_event(
+            events,
+            "damage_assigned",
+            f"{state.investigator.name} took {damage} damage and {horror} horror.",
+            source=str(assignment.get("source", "")),
+        )
+        check_investigator_defeat(state, events)
+        if state.decision_queue:
+            defer_damage_continuation(state, assignment)
+            return
+        if state.status == "in_progress":
+            resolve_damage_horror_forced_weaknesses(state, events, damage=damage, horror=horror)
+        if state.status == "in_progress" and horror > 0:
+            present_after_horror_reaction(state, events)
+        if state.decision_queue:
+            defer_damage_continuation(state, assignment)
+            return
+        continue_damage_assignments(state, events, assignment, rng=rng)
+        return
+    state.pending_damage = assignment
     present_damage_decision(state)
+
+
+def damage_resumes(assignment: dict[str, Any]) -> list[dict[str, Any]]:
+    resumes = []
+    resume = dict(assignment.get("resume", {}))
+    if resume:
+        resumes.append(resume)
+    resumes.extend(dict(item) for item in assignment.get("post_resumes", []) if item)
+    return resumes
+
+
+def defer_damage_continuation(state: GameState, assignment: dict[str, Any]) -> None:
+    state.limits["deferred_damage_continuation"] = {
+        "queue": [dict(item) for item in assignment.get("queue", [])],
+        "resumes": damage_resumes(assignment),
+    }
+
+
+def continue_damage_assignments(
+    state: GameState,
+    events: list[dict[str, Any]],
+    assignment: dict[str, Any],
+    *,
+    rng: Any = None,
+) -> None:
+    if state.status != "in_progress":
+        return
+    queue = [dict(item) for item in assignment.get("queue", [])]
+    resumes = damage_resumes(assignment)
+    if queue:
+        next_assignment = queue.pop(0)
+        next_assignment["queue"] = queue
+        next_assignment["post_resumes"] = resumes
+        begin_damage_assignment(state, events, next_assignment, rng=rng)
+        return
+    resolve_damage_resumes(state, events, resumes, rng=rng)
+
+
+def resolve_damage_resumes(
+    state: GameState,
+    events: list[dict[str, Any]],
+    resumes: list[dict[str, Any]],
+    *,
+    rng: Any = None,
+) -> None:
+    remaining = [dict(resume) for resume in resumes if resume]
+    while remaining and state.status == "in_progress" and not state.decision_queue and not state.pending_damage:
+        resolve_damage_resume(state, events, remaining.pop(0), rng=rng)
+    if remaining and state.status == "in_progress":
+        state.limits["deferred_damage_continuation"] = {
+            "queue": [],
+            "resumes": remaining,
+        }
+
+
+def resume_damage_continuation(state: GameState, events: list[dict[str, Any]], rng: Any = None) -> None:
+    if state.status != "in_progress" or state.decision_queue or state.pending_damage:
+        return
+    continuation = dict(state.limits.pop("deferred_damage_continuation", {}))
+    queue = [dict(item) for item in continuation.get("queue", [])]
+    resumes = [dict(item) for item in continuation.get("resumes", [])]
+    if queue:
+        next_assignment = queue.pop(0)
+        next_assignment["queue"] = queue
+        next_assignment["post_resumes"] = resumes
+        begin_damage_assignment(state, events, next_assignment, rng=rng)
+        return
+    resolve_damage_resumes(state, events, resumes, rng=rng)
 
 
 def legal_soak_targets(state: GameState) -> list[str]:
@@ -516,13 +670,11 @@ def assign_damage_choice(state: GameState, payload: dict[str, Any], events: list
         present_damage_decision(state)
     else:
         state.pending_damage = None
-        resume = dict(pending.get("resume", {}))
         damage_to_investigator, horror_to_investigator = apply_assigned_damage(state, pending, events)
         if state.status != "in_progress":
             return
         if state.decision_queue:
-            if resume:
-                state.limits["deferred_resume"] = resume
+            defer_damage_continuation(state, pending)
             return
         resolve_damage_horror_forced_weaknesses(state, events, damage=damage_to_investigator, horror=horror_to_investigator)
         if state.status != "in_progress":
@@ -530,10 +682,9 @@ def assign_damage_choice(state: GameState, payload: dict[str, Any], events: list
         if horror_to_investigator > 0:
             present_after_horror_reaction(state, events)
             if state.decision_queue:
-                if resume:
-                    state.limits["deferred_resume"] = resume
+                defer_damage_continuation(state, pending)
                 return
-        resolve_damage_resume(state, events, resume, rng=rng)
+        continue_damage_assignments(state, events, pending, rng=rng)
 
 
 def resolve_damage_resume(state: GameState, events: list[dict[str, Any]], resume: dict[str, Any], rng: Any = None) -> None:
@@ -561,6 +712,10 @@ def resolve_damage_resume(state: GameState, events: list[dict[str, Any]], resume
         scenario = SCENARIOS.get(state.scenario)
         if scenario is not None:
             scenario.resolve_choice(state, dict(resume), events, rng)
+    elif kind == "skill_test_reveal":
+        from . import skill_test
+
+        skill_test.resume_deferred_resolution(state, events, rng)
 
 
 def apply_assigned_damage(state: GameState, pending: dict[str, Any], events: list[dict[str, Any]]) -> tuple[int, int]:
@@ -675,6 +830,7 @@ def end_game(state: GameState, events: list[dict[str, Any]], summary: str) -> No
     state.status = "ended"
     state.decision_queue = []
     state.result = {"outcome": summary, "round": state.round, "trauma": dict(state.trauma)}
+    dispatched_event_count = len(events)
     if state.scenario in GATHERING_FAMILY:
         from .scenarios import the_gathering
 
@@ -687,7 +843,8 @@ def end_game(state: GameState, events: list[dict[str, Any]], summary: str) -> No
         from .scenarios import the_devourer_below
 
         the_devourer_below.finalize_result(state, events, outcome="no_resolution", resolution="no_resolution", summary=summary)
-    log_event(events, "game_end", summary)
+    if not any(event.get("type") == "game_end" for event in events[dispatched_event_count:]):
+        log_event(events, "game_end", summary)
 
 
 def apply_cover_up_trauma(state: GameState, events: list[dict[str, Any]]) -> None:
@@ -707,11 +864,13 @@ def apply_cover_up_trauma(state: GameState, events: list[dict[str, Any]]) -> Non
 
 def heal_roland(state: GameState, events: list[dict[str, Any]], *, damage: int = 0, horror: int = 0) -> None:
     if damage > 0 and state.investigator.damage > 0:
+        healed = min(damage, state.investigator.damage)
         state.investigator.damage = max(0, state.investigator.damage - damage)
-        log_event(events, "damage_healed", f"{state.investigator.name} healed {damage} damage.", amount=damage)
+        log_event(events, "damage_healed", f"{state.investigator.name} healed {healed} damage.", amount=healed)
     if horror > 0 and state.investigator.horror > 0:
+        healed = min(horror, state.investigator.horror)
         state.investigator.horror = max(0, state.investigator.horror - horror)
-        log_event(events, "horror_healed", f"{state.investigator.name} healed {horror} horror.", amount=horror)
+        log_event(events, "horror_healed", f"{state.investigator.name} healed {healed} horror.", amount=healed)
 
 
 def present_after_horror_reaction(state: GameState, events: list[dict[str, Any]]) -> None:

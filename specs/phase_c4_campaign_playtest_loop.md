@@ -10,8 +10,7 @@ so runs are reproducible and the pattern survives context loss.
   Devourer Below, all Return variants, standard difficulty (until phase C5 hard runs).
 - **Auditor**: GPT-5.5 via `codex exec` (read-only) — judge-style transcript audit of
   each scenario's log.md + campaign.json + the upgrade-phase decisions. Fallback if
-  codex credits die mid-loop: `claude --model claude-opus-4-8`. (Ping Clyde on codex
-  outage: he refills.)
+  codex credits die mid-loop: `claude --model claude-opus-4-8`.
 - **Adjudicator**: Fable 5 (this session) — verifies each audit finding against engine
   code + rules PDFs; ledger in specs/bug_adjudications.md (continue numbering); fixes
   via codex fix-batch specs; regression test per confirmed bug.
@@ -34,7 +33,7 @@ so runs are reproducible and the pattern survives context loss.
 - Known-adjudication suppression: embed the current ledger's not-a-bug list in the
   audit prompt (same as audit passes 1–2).
 
-## Loop schedule (per Clyde's goal: "a few times")
+## Loop schedule
 
 Round k: 2 Haiku campaigns (fresh seeds) → audits (GPT-5.5) → Fable adjudication →
 codex fix batch (if any confirmed) → regression tests → next round. Stop when a round

@@ -1,0 +1,17 @@
+﻿{
+  "created_at": "2026-07-26T12:17:18+00:00",
+  "deck": "./data/decks/killbray/wendy.json",
+  "difficulty": "standard",
+  "engine_version": "0.1.0-phase-a",
+  "hidden_sha256": "a2064ed5931e5071bd8f72598a5d3bbfad44ee80ff750da778f7c6c0a6548ae2",
+  "investigator": {
+    "code": "01005",
+    "id": "wendy",
+    "name": "Wendy Adams"
+  },
+  "notebook": "./bench/fable5-b6/notebook.md",
+  "scenario": "return_to_the_gathering",
+  "seed": 1030,
+  "status": "ended",
+  "updated_at": "2026-07-27T04:49:41+00:00"
+}

@@ -65,6 +65,16 @@ docs_agent/ documents, and `./ahlcg card` lookups, like a judge who has the rule
 but not the implementation."""
 
 
+def _opencode_argv(model: str, prompt: str) -> list[str]:
+    # opencode has no tool-restriction flags; the prompt's honor-system rules
+    # apply (same trust level as the codex branch). Needs OPENROUTER_API_KEY
+    # in the environment for openrouter/* models.
+    import os
+
+    return [os.path.expanduser("~/.opencode/bin/opencode"), "run", "-m",
+            model.split(":", 1)[1], prompt]
+
+
 def audit_run(run_dir: Path, model: str, adjudications: str) -> tuple[str, int]:
     prompt = build_prompt(run_dir, adjudications)
     if model == "codex":
@@ -73,6 +83,8 @@ def audit_run(run_dir: Path, model: str, adjudications: str) -> tuple[str, int]:
         argv = ["codex", "exec", prompt]
     elif model.startswith("codex:"):
         argv = ["codex", "exec", "-m", model.split(":", 1)[1], prompt]
+    elif model.startswith("opencode:"):
+        argv = _opencode_argv(model, prompt)
     else:
         allowed = (
             f"Read(docs_agent/**),Read({run_dir}/log.md),Read({run_dir}/bug_reports.md),Bash(./ahlcg card:*)"
@@ -170,6 +182,8 @@ def audit_reasoning(run_dir: Path, model: str) -> tuple[str, int]:
         argv = ["codex", "exec", prompt]
     elif model.startswith("codex:"):
         argv = ["codex", "exec", "-m", model.split(":", 1)[1], prompt]
+    elif model.startswith("opencode:"):
+        argv = _opencode_argv(model, prompt)
     else:
         allowed = f"Read(docs_agent/**),Read({run_dir}/log.md),Bash(./ahlcg card:*)"
         disallowed = "Read(arkham/**),Read(data/**),Read(tests/**),Read(specs/**)"
@@ -183,6 +197,10 @@ def audit_campaign(campaign_dir: Path, model: str, adjudications: str) -> tuple[
     prompt = build_campaign_prompt(campaign_dir, adjudications)
     if model == "codex":
         argv = ["codex", "exec", prompt]
+    elif model.startswith("codex:"):
+        argv = ["codex", "exec", "-m", model.split(":", 1)[1], prompt]
+    elif model.startswith("opencode:"):
+        argv = _opencode_argv(model, prompt)
     else:
         allowed = (
             f"Read(docs_agent/**),Read({campaign_dir}/campaign.json),Read({campaign_dir}/campaign_summary.json),"
@@ -207,9 +225,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Audit completed games for engine rules bugs.")
     parser.add_argument("runs", nargs="*", help="run directories (each with log.md)")
     parser.add_argument("--campaign", help="campaign dir: audit each scenario run, then the campaign layer")
+    parser.add_argument("--campaign-only", action="store_true",
+                        help="with --campaign: audit only the campaign layer, skip its scenario runs")
     parser.add_argument("--reasoning", action="store_true",
                         help="also audit each run's agent rationales for rules misconceptions (-> reasoning_audit.md)")
     parser.add_argument("--model", default="claude-fable-5")
+    parser.add_argument("--out-name", default="audit.md", help="report filename written into each run dir")
     args = parser.parse_args(argv)
     if not args.runs and not args.campaign:
         parser.error("give run directories and/or --campaign")
@@ -218,7 +239,7 @@ def main(argv: list[str] | None = None) -> int:
     adjudications = adjudications_path.read_text(encoding="utf-8") if adjudications_path.exists() else "(none)"
 
     run_list = [Path(run) for run in args.runs]
-    if args.campaign:
+    if args.campaign and not args.campaign_only:
         run_list.extend(campaign_run_dirs(Path(args.campaign)))
 
     failures = 0
@@ -228,7 +249,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         print(f"=== auditing {run_dir} with {args.model}")
         report, rc = audit_run(run_dir, args.model, adjudications)
-        out = run_dir / "audit.md"
+        out = run_dir / args.out_name
         out.write_text(report + "\n", encoding="utf-8")
         print(report)
         print(f"--- written to {out}")

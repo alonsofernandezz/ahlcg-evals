@@ -1,0 +1,17 @@
+﻿{
+  "created_at": "2026-07-26T22:05:38+00:00",
+  "deck": "./data/decks/killbray/roland.json",
+  "difficulty": "standard",
+  "engine_version": "0.1.0-phase-a",
+  "hidden_sha256": "a6e5cd1ba52a76e4defcdd9281f5dbd260850a2176740c68e78408ae55799b63",
+  "investigator": {
+    "code": "01001",
+    "id": "roland",
+    "name": "Roland Banks"
+  },
+  "notebook": "./bench/k3-b6/notebook.md",
+  "scenario": "return_to_the_gathering",
+  "seed": 1001,
+  "status": "ended",
+  "updated_at": "2026-07-26T22:35:15+00:00"
+}
